@@ -1,0 +1,98 @@
+import {NativeModules} from 'react-native';
+import type {StatusFile} from '../types';
+import {getFileType} from '../utils/fileUtils';
+import {isAndroid} from '../utils/platform';
+
+const {StatusAccessModule, SAFModule} = NativeModules;
+
+function mapNativeFile(file: any): StatusFile {
+  return {
+    id: file.path || file.uri,
+    path: file.path ?? '',
+    name: file.name ?? '',
+    type: getFileType(file.name ?? ''),
+    size: file.size ?? 0,
+    lastModified: file.lastModified ?? 0,
+    uri: file.uri ?? file.path ?? '',
+  };
+}
+
+export async function getStatuses(): Promise<StatusFile[]> {
+  try {
+    if (!isAndroid) {
+      // iOS uses a Share Extension; statuses come from shared container
+      return [];
+    }
+
+    let files: any[];
+    // Try SAF first (Android 11+), fall back to direct path
+    try {
+      console.log('[StatusService] Trying SAF getPersistedFiles...');
+      files = await SAFModule.getPersistedFiles();
+      console.log('[StatusService] SAF returned', files?.length ?? 0, 'files');
+    } catch (safError: any) {
+      console.log('[StatusService] SAF failed:', safError?.message || safError);
+      try {
+        console.log('[StatusService] Trying direct path getStatusFiles...');
+        files = await StatusAccessModule.getStatusFiles();
+        console.log('[StatusService] Direct path returned', files?.length ?? 0, 'files');
+      } catch (directError: any) {
+        console.log('[StatusService] Direct path also failed:', directError?.message || directError);
+        return [];
+      }
+    }
+
+    if (!Array.isArray(files)) {
+      console.log('[StatusService] files is not an array:', typeof files);
+      return [];
+    }
+
+    const result = files
+      .filter((f: any) => f && f.name && !f.name.startsWith('.'))
+      .map(mapNativeFile)
+      .sort((a, b) => b.lastModified - a.lastModified);
+
+    console.log('[StatusService] Returning', result.length, 'statuses');
+    return result;
+  } catch (error) {
+    console.error('StatusService.getStatuses failed:', error);
+    return [];
+  }
+}
+
+export async function refreshStatuses(): Promise<StatusFile[]> {
+  try {
+    if (!isAndroid) {
+      return [];
+    }
+
+    let files: any[];
+    try {
+      files = await SAFModule.getPersistedFiles();
+    } catch {
+      files = await StatusAccessModule.getStatusFiles();
+    }
+
+    if (!Array.isArray(files)) {
+      return [];
+    }
+
+    return files
+      .filter((f: any) => f && f.name && !f.name.startsWith('.'))
+      .map(mapNativeFile)
+      .sort((a, b) => b.lastModified - a.lastModified);
+  } catch (error) {
+    console.error('StatusService.refreshStatuses failed:', error);
+    return [];
+  }
+}
+
+export async function getImageStatuses(): Promise<StatusFile[]> {
+  const statuses = await getStatuses();
+  return statuses.filter(s => s.type === 'image');
+}
+
+export async function getVideoStatuses(): Promise<StatusFile[]> {
+  const statuses = await getStatuses();
+  return statuses.filter(s => s.type === 'video');
+}

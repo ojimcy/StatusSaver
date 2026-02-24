@@ -1,0 +1,60 @@
+import {useState, useEffect, useCallback} from 'react';
+import {
+  checkStoragePermission,
+  requestStoragePermission,
+  requestSAFAccess,
+  getWhatsAppInstallStatus,
+} from '../services/PermissionService';
+import {
+  isNotificationListenerEnabled,
+  requestNotificationAccess,
+} from '../services/NotificationService';
+import {isAndroid} from '../utils/platform';
+
+export default function usePermissions() {
+  const [storageGranted, setStorageGranted] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
+
+  useEffect(() => {
+    checkStoragePermission().then(setStorageGranted);
+
+    if (isAndroid) {
+      isNotificationListenerEnabled().then(setNotificationEnabled);
+    }
+  }, []);
+
+  const requestStorage = useCallback(async () => {
+    const granted = await requestStoragePermission();
+    setStorageGranted(granted);
+    return granted;
+  }, []);
+
+  const requestNotification = useCallback(() => {
+    requestNotificationAccess();
+  }, []);
+
+  const requestSAF = useCallback(async () => {
+    // Detect installed variants and request SAF for each
+    const installStatus = await getWhatsAppInstallStatus();
+
+    let lastUri: string | null = null;
+    if (installStatus.whatsapp) {
+      lastUri = await requestSAFAccess('regular');
+    }
+    if (installStatus.business) {
+      const businessUri = await requestSAFAccess('business');
+      if (businessUri) {
+        lastUri = businessUri;
+      }
+    }
+    return lastUri;
+  }, []);
+
+  return {
+    storageGranted,
+    notificationEnabled,
+    requestStorage,
+    requestNotification,
+    requestSAF,
+  };
+}
