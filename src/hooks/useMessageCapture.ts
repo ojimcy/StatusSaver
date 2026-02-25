@@ -43,6 +43,7 @@ async function persistOriginal(original: WhatsAppMessageEvent): Promise<void> {
     isRead: false,
     thumbnailBase64: original.thumbnailBase64,
     createdAt: Date.now(),
+    packageName: original.packageName || 'com.whatsapp',
   });
 }
 

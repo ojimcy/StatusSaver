@@ -12,6 +12,7 @@ function rowToMessage(row: any): DeletedMessage {
     isRead: row.is_read === 1,
     thumbnailBase64: row.thumbnail_base64 ?? null,
     createdAt: row.created_at,
+    packageName: row.package_name ?? 'com.whatsapp',
   };
 }
 
@@ -21,8 +22,8 @@ export async function storeMessage(
   const db = await getDatabase();
   const [result] = await db.executeSql(
     `INSERT INTO deleted_messages
-       (contact_name, message_text, group_name, is_group, timestamp, is_read, thumbnail_base64, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       (contact_name, message_text, group_name, is_group, timestamp, is_read, thumbnail_base64, created_at, package_name)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       msg.contactName,
       msg.messageText,
@@ -32,6 +33,7 @@ export async function storeMessage(
       msg.isRead ? 1 : 0,
       msg.thumbnailBase64,
       msg.createdAt,
+      msg.packageName,
     ],
   );
   return result.insertId;
@@ -39,10 +41,16 @@ export async function storeMessage(
 
 export async function getMessages(
   filter?: MessageFilter,
+  packageName?: string,
 ): Promise<DeletedMessage[]> {
   const db = await getDatabase();
   const conditions: string[] = [];
   const params: any[] = [];
+
+  if (packageName) {
+    conditions.push('package_name = ?');
+    params.push(packageName);
+  }
 
   if (filter) {
     if (filter.searchQuery) {
@@ -80,11 +88,20 @@ export async function getMessages(
 
 export async function getMessagesByContact(
   contactName: string,
+  packageName?: string,
 ): Promise<DeletedMessage[]> {
   const db = await getDatabase();
+  const conditions = ['contact_name = ?'];
+  const params: any[] = [contactName];
+
+  if (packageName) {
+    conditions.push('package_name = ?');
+    params.push(packageName);
+  }
+
   const [results] = await db.executeSql(
-    'SELECT * FROM deleted_messages WHERE contact_name = ? ORDER BY timestamp ASC',
-    [contactName],
+    `SELECT * FROM deleted_messages WHERE ${conditions.join(' AND ')} ORDER BY timestamp ASC`,
+    params,
   );
 
   const messages: DeletedMessage[] = [];
@@ -94,20 +111,30 @@ export async function getMessagesByContact(
   return messages;
 }
 
-export async function getUniqueContacts(): Promise<
-  {name: string; count: number; lastMessage: string}[]
-> {
+export async function getUniqueContacts(
+  packageName?: string,
+): Promise<{name: string; count: number; lastMessage: string}[]> {
   const db = await getDatabase();
+  const whereClause = packageName ? 'WHERE package_name = ?' : '';
+  const subWhereClause = packageName
+    ? 'AND d2.package_name = ?'
+    : '';
+  const params: any[] = packageName
+    ? [packageName, packageName]
+    : [];
+
   const [results] = await db.executeSql(
     `SELECT
        contact_name,
        COUNT(*) as count,
        (SELECT message_text FROM deleted_messages d2
-        WHERE d2.contact_name = d1.contact_name
+        WHERE d2.contact_name = d1.contact_name ${subWhereClause}
         ORDER BY timestamp DESC LIMIT 1) as last_message
      FROM deleted_messages d1
+     ${whereClause}
      GROUP BY contact_name
      ORDER BY MAX(timestamp) DESC`,
+    params,
   );
 
   const contacts: {name: string; count: number; lastMessage: string}[] = [];

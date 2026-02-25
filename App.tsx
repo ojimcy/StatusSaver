@@ -25,6 +25,7 @@ import MessageDetailScreen from './src/screens/MessageDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 
+import VariantSelector from './src/components/VariantSelector';
 import useSettingsStore from './src/store/useSettingsStore';
 import useTheme from './src/hooks/useTheme';
 import useMessageCapture from './src/hooks/useMessageCapture';
@@ -48,7 +49,10 @@ function ImagesStack() {
       <Stack.Screen
         name="ImagesHome"
         component={HomeScreen}
-        options={{title: 'Status Saver'}}
+        options={{
+          title: 'Status Saver',
+          headerRight: () => <VariantSelector />,
+        }}
       />
       <Stack.Screen
         name="Viewer"
@@ -71,7 +75,10 @@ function VideosStack() {
       <Stack.Screen
         name="VideosHome"
         component={VideosScreen}
-        options={{title: 'Videos'}}
+        options={{
+          title: 'Videos',
+          headerRight: () => <VariantSelector />,
+        }}
       />
       <Stack.Screen
         name="Viewer"
@@ -117,7 +124,10 @@ function MessagesStack() {
       <Stack.Screen
         name="MessagesHome"
         component={MessagesScreen}
-        options={{title: 'Messages'}}
+        options={{
+          title: 'Messages',
+          headerRight: () => <VariantSelector />,
+        }}
       />
       <Stack.Screen
         name="MessageDetail"

@@ -12,10 +12,10 @@ interface MessageState {
   filter: MessageFilter;
   loading: boolean;
 
-  fetchContacts: () => Promise<void>;
-  fetchMessages: (contactName: string) => Promise<void>;
+  fetchContacts: (packageName?: string) => Promise<void>;
+  fetchMessages: (contactName: string, packageName?: string) => Promise<void>;
   setFilter: (filter: Partial<MessageFilter>) => void;
-  searchMessages: (query: string) => Promise<void>;
+  searchMessages: (query: string, packageName?: string) => Promise<void>;
 }
 
 const initialFilter: MessageFilter = {
@@ -31,10 +31,10 @@ const useMessageStore = create<MessageState>((set, get) => ({
   filter: initialFilter,
   loading: false,
 
-  fetchContacts: async () => {
+  fetchContacts: async (packageName?: string) => {
     set({loading: true});
     try {
-      const contacts = await getUniqueContacts();
+      const contacts = await getUniqueContacts(packageName);
       set({contacts, loading: false});
     } catch (error) {
       console.error('useMessageStore.fetchContacts failed:', error);
@@ -42,10 +42,10 @@ const useMessageStore = create<MessageState>((set, get) => ({
     }
   },
 
-  fetchMessages: async (contactName: string) => {
+  fetchMessages: async (contactName: string, packageName?: string) => {
     set({loading: true});
     try {
-      const messages = await getMessagesByContact(contactName);
+      const messages = await getMessagesByContact(contactName, packageName);
       set({currentMessages: messages, loading: false});
     } catch (error) {
       console.error('useMessageStore.fetchMessages failed:', error);
@@ -58,12 +58,12 @@ const useMessageStore = create<MessageState>((set, get) => ({
     set({filter: {...filter, ...partial}});
   },
 
-  searchMessages: async (query: string) => {
+  searchMessages: async (query: string, packageName?: string) => {
     set({loading: true});
     try {
       const {filter} = get();
       const updatedFilter: MessageFilter = {...filter, searchQuery: query};
-      const messages = await getMessages(updatedFilter);
+      const messages = await getMessages(updatedFilter, packageName);
       set({currentMessages: messages, filter: updatedFilter, loading: false});
     } catch (error) {
       console.error('useMessageStore.searchMessages failed:', error);

@@ -8,7 +8,8 @@ export const CREATE_MESSAGES_TABLE = `
     timestamp INTEGER NOT NULL,
     is_read INTEGER DEFAULT 0,
     thumbnail_base64 TEXT,
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    package_name TEXT DEFAULT 'com.whatsapp'
   );
 `;
 

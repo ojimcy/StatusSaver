@@ -36,6 +36,7 @@ export interface WhatsAppMessageEvent {
   thumbnailBase64: string | null;
   notificationKey: string;
   notificationId: number;
+  packageName: string;
 }
 
 export interface WhatsAppMessageRemovedEvent {

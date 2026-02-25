@@ -28,8 +28,19 @@ async function runMigrations(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 2) {
     // v1+v2: wipe all messages captured before the deleted-only + summary filters
     await db.executeSql('DELETE FROM deleted_messages;');
+  }
+
+  if (currentVersion < 3) {
+    // v3: add package_name column for variant filtering
+    try {
+      await db.executeSql(
+        "ALTER TABLE deleted_messages ADD COLUMN package_name TEXT DEFAULT 'com.whatsapp';",
+      );
+    } catch {
+      // Column may already exist if table was freshly created
+    }
     await db.executeSql(
-      "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '2');",
+      "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '3');",
     );
   }
 }

@@ -1,9 +1,21 @@
 import {NativeModules} from 'react-native';
-import type {StatusFile} from '../types';
+import type {StatusFile, WhatsAppVariant} from '../types';
 import {getFileType} from '../utils/fileUtils';
 import {isAndroid} from '../utils/platform';
 
 const {StatusAccessModule, SAFModule} = NativeModules;
+
+function detectVariant(file: any): WhatsAppVariant {
+  const source: string = file.uri || file.path || '';
+  if (
+    source.includes('com.whatsapp.w4b') ||
+    source.includes('WhatsApp%20Business') ||
+    source.includes('WhatsApp Business')
+  ) {
+    return 'business';
+  }
+  return 'whatsapp';
+}
 
 function mapNativeFile(file: any): StatusFile {
   return {
@@ -14,6 +26,7 @@ function mapNativeFile(file: any): StatusFile {
     size: file.size ?? 0,
     lastModified: file.lastModified ?? 0,
     uri: file.uri ?? file.path ?? '',
+    variant: detectVariant(file),
   };
 }
 

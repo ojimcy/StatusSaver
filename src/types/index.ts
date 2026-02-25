@@ -1,3 +1,5 @@
+export type WhatsAppVariant = 'whatsapp' | 'business';
+
 export interface StatusFile {
   id: string;
   path: string;
@@ -6,6 +8,7 @@ export interface StatusFile {
   size: number;
   lastModified: number;
   uri: string;
+  variant: WhatsAppVariant;
 }
 
 export interface DeletedMessage {
@@ -18,6 +21,7 @@ export interface DeletedMessage {
   isRead: boolean;
   thumbnailBase64: string | null;
   createdAt: number;
+  packageName: string;
 }
 
 export interface MessageFilter {

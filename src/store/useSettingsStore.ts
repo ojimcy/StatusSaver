@@ -2,6 +2,7 @@ import {create} from 'zustand';
 import {persist, createJSONStorage} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AUTO_DELETE_DAYS} from '../utils/constants';
+import type {WhatsAppVariant} from '../types';
 
 interface SettingsState {
   darkMode: 'system' | 'light' | 'dark';
@@ -10,11 +11,13 @@ interface SettingsState {
   onboardingComplete: boolean;
   autoDeleteEnabled: boolean;
   autoDeleteDays: number;
+  selectedVariant: WhatsAppVariant;
 
   setDarkMode: (mode: 'system' | 'light' | 'dark') => void;
   setNotificationConsent: (given: boolean) => void;
   setOnboardingComplete: () => void;
   toggleAutoDelete: () => void;
+  setSelectedVariant: (variant: WhatsAppVariant) => void;
 }
 
 const useSettingsStore = create<SettingsState>()(
@@ -26,6 +29,7 @@ const useSettingsStore = create<SettingsState>()(
       onboardingComplete: false,
       autoDeleteEnabled: true,
       autoDeleteDays: AUTO_DELETE_DAYS,
+      selectedVariant: 'whatsapp',
 
       setDarkMode: (mode: 'system' | 'light' | 'dark') => {
         set({darkMode: mode});
@@ -42,6 +46,10 @@ const useSettingsStore = create<SettingsState>()(
       toggleAutoDelete: () => {
         const {autoDeleteEnabled} = get();
         set({autoDeleteEnabled: !autoDeleteEnabled});
+      },
+
+      setSelectedVariant: (variant: WhatsAppVariant) => {
+        set({selectedVariant: variant});
       },
     }),
     {
