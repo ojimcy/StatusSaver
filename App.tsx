@@ -27,6 +27,7 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 
 import useSettingsStore from './src/store/useSettingsStore';
 import useTheme from './src/hooks/useTheme';
+import useMessageCapture from './src/hooks/useMessageCapture';
 import {fontSize, spacing} from './src/theme/spacing';
 import {supportsDeletedMessages} from './src/utils/platform';
 
@@ -333,6 +334,9 @@ function App(): React.JSX.Element {
   const {theme, isDark} = useTheme();
   const [adsInitialized, setAdsInitialized] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(!onboardingComplete);
+
+  // Start capturing WhatsApp notification messages in the background
+  useMessageCapture();
 
   // Build React Navigation theme based on our custom colors
   const navigationTheme = isDark

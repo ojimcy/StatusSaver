@@ -17,31 +17,32 @@ interface SAFPermissionState {
   grantAccess: () => Promise<boolean>;
 }
 
-export default function useSAFPermission(shouldCheck: boolean): SAFPermissionState {
+export default function useSAFPermission(): SAFPermissionState {
   const [missingVariants, setMissingVariants] = useState<WhatsAppVariant[]>([]);
 
-  useEffect(() => {
-    if (!shouldCheck || !isAndroid || Number(Platform.Version) < 30) {
-      setMissingVariants([]);
+  const checkPermissions = useCallback(async () => {
+    if (!isAndroid || Number(Platform.Version) < 30) {
       return;
     }
 
-    (async () => {
-      const [installStatus, permStatus] = await Promise.all([
-        getWhatsAppInstallStatus(),
-        getSAFPermissionStatus(),
-      ]);
+    const [installStatus, permStatus] = await Promise.all([
+      getWhatsAppInstallStatus(),
+      getSAFPermissionStatus(),
+    ]);
 
-      const missing: WhatsAppVariant[] = [];
-      if (installStatus.whatsapp && !permStatus.whatsapp) {
-        missing.push('regular');
-      }
-      if (installStatus.business && !permStatus.business) {
-        missing.push('business');
-      }
-      setMissingVariants(missing);
-    })();
-  }, [shouldCheck]);
+    const missing: WhatsAppVariant[] = [];
+    if (installStatus.whatsapp && !permStatus.whatsapp) {
+      missing.push('regular');
+    }
+    if (installStatus.business && !permStatus.business) {
+      missing.push('business');
+    }
+    setMissingVariants(missing);
+  }, []);
+
+  useEffect(() => {
+    checkPermissions();
+  }, [checkPermissions]);
 
   const grantAccess = useCallback(async () => {
     let anyGranted = false;
@@ -53,24 +54,10 @@ export default function useSAFPermission(shouldCheck: boolean): SAFPermissionSta
       }
     }
 
-    if (anyGranted) {
-      // Re-check what's still missing
-      const [installStatus, permStatus] = await Promise.all([
-        getWhatsAppInstallStatus(),
-        getSAFPermissionStatus(),
-      ]);
-      const stillMissing: WhatsAppVariant[] = [];
-      if (installStatus.whatsapp && !permStatus.whatsapp) {
-        stillMissing.push('regular');
-      }
-      if (installStatus.business && !permStatus.business) {
-        stillMissing.push('business');
-      }
-      setMissingVariants(stillMissing);
-    }
-
+    // Re-check what's still missing
+    await checkPermissions();
     return anyGranted;
-  }, [missingVariants]);
+  }, [missingVariants, checkPermissions]);
 
   return {
     needsPermission: missingVariants.length > 0,

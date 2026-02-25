@@ -53,6 +53,11 @@ public class WhatsAppNotificationService extends NotificationListenerService {
         }
 
         try {
+            // Skip group summary notifications (the bundled "X messages from Y chats" ones)
+            if ((sbn.getNotification().flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+                return;
+            }
+
             Notification notification = sbn.getNotification();
             if (notification == null) {
                 return;
@@ -67,8 +72,14 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             CharSequence textSequence = extras.getCharSequence(Notification.EXTRA_TEXT);
             String messageText = textSequence != null ? textSequence.toString() : "";
 
-            // Skip empty messages and summary notifications
-            if (messageText.isEmpty() || messageText.contains("new messages")) {
+            // Skip empty messages and summary/aggregate notifications
+            if (messageText.isEmpty()) {
+                return;
+            }
+            String msgLower = messageText.toLowerCase();
+            if (msgLower.matches(".*\\d+ new messages?.*")
+                    || msgLower.matches(".*\\d+ messages? from \\d+ chats?.*")
+                    || msgLower.matches(".*\\d+ new message.*")) {
                 return;
             }
 
@@ -165,8 +176,14 @@ public class WhatsAppNotificationService extends NotificationListenerService {
     }
 
     @Override
-    public void onNotificationRemoved(StatusBarNotification sbn) {
+    public void onNotificationRemoved(StatusBarNotification sbn, RankingMap rankingMap, int reason) {
         if (sbn == null) {
+            return;
+        }
+
+        // Only react to app-initiated removals (WhatsApp itself cancelling the notification).
+        // This filters out user swipes (REASON_CANCEL) and "clear all" (REASON_CANCEL_ALL).
+        if (reason != REASON_APP_CANCEL) {
             return;
         }
 
@@ -204,7 +221,7 @@ public class WhatsAppNotificationService extends NotificationListenerService {
 
             emitEvent(EVENT_MESSAGE_REMOVED, eventData);
 
-            Log.d(TAG, "WhatsApp notification removed: " + sbn.getKey());
+            Log.d(TAG, "WhatsApp notification removed (APP_CANCEL): " + sbn.getKey());
 
         } catch (Exception e) {
             Log.e(TAG, "Error processing removed WhatsApp notification", e);

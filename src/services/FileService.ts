@@ -11,8 +11,11 @@ export async function saveToGallery(file: StatusFile): Promise<boolean> {
     // SAF content:// URIs can't be saved directly by CameraRoll.
     // Copy to a temp file first, save to gallery, then clean up.
     if (file.uri.startsWith('content://')) {
-      const ext = file.name.split('.').pop() || (type === 'video' ? 'mp4' : 'jpg');
-      const tempPath = `${RNFS.CachesDirectoryPath}/${file.name || `status_${Date.now()}.${ext}`}`;
+      const ext =
+        file.name.split('.').pop() || (type === 'video' ? 'mp4' : 'jpg');
+      const tempPath = `${RNFS.CachesDirectoryPath}/${
+        file.name || `status_${Date.now()}.${ext}`
+      }`;
       await RNFS.copyFile(file.uri, tempPath);
       uriToSave = `file://${tempPath}`;
       await CameraRoll.save(uriToSave, {type, album: 'StatusSaver'});
@@ -55,8 +58,11 @@ export async function shareFile(file: StatusFile): Promise<void> {
 
     // SAF content:// URIs need to be copied to a temp file for sharing
     if (file.uri.startsWith('content://')) {
-      const ext = file.name.split('.').pop() || (file.type === 'video' ? 'mp4' : 'jpg');
-      tempPath = `${RNFS.CachesDirectoryPath}/${file.name || `share_${Date.now()}.${ext}`}`;
+      const ext =
+        file.name.split('.').pop() || (file.type === 'video' ? 'mp4' : 'jpg');
+      tempPath = `${RNFS.CachesDirectoryPath}/${
+        file.name || `share_${Date.now()}.${ext}`
+      }`;
       await RNFS.copyFile(file.uri, tempPath);
       shareUrl = `file://${tempPath}`;
     }

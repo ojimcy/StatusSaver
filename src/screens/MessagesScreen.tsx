@@ -184,7 +184,7 @@ const MessagesScreen: React.FC<{navigation: any}> = ({navigation}) => {
         title="No Messages Yet"
         subtitle={
           notificationEnabled
-            ? 'Captured messages will appear here when contacts send or delete messages.'
+            ? 'Deleted messages will appear here when someone deletes a message for everyone.'
             : 'Enable notification access to start capturing deleted messages.'
         }
       />

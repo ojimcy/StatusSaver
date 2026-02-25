@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {View, StyleSheet, Alert} from 'react-native';
+import {View, Text, StyleSheet, Alert, TouchableOpacity} from 'react-native';
 import useStatuses from '../hooks/useStatuses';
 import useStatusStore from '../store/useStatusStore';
 import useSAFPermission from '../hooks/useSAFPermission';
@@ -9,6 +9,7 @@ import AdBanner from '../components/AdBanner';
 import EmptyState from '../components/EmptyState';
 import useTheme from '../hooks/useTheme';
 import {saveBatch, shareFile} from '../services/FileService';
+import {spacing, fontSize} from '../theme/spacing';
 import type {StatusFile} from '../types';
 
 const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
@@ -16,9 +17,7 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const {videos, loading, refresh} = useStatuses();
   const {selectedIds, toggleSelection, clearSelection} = useStatusStore();
   const selectionMode = selectedIds.length > 0;
-  const {needsPermission, grantAccess} = useSAFPermission(
-    !loading && videos.length === 0,
-  );
+  const {needsPermission, missingVariants, grantAccess} = useSAFPermission();
 
   const handleGrantAccess = useCallback(async () => {
     const granted = await grantAccess();
@@ -69,6 +68,26 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
     clearSelection();
   }, [videos, selectedIds, clearSelection]);
 
+  const missingLabel = missingVariants
+    .map(v => (v === 'business' ? 'WhatsApp Business' : 'WhatsApp'))
+    .join(' & ');
+
+  const renderPermissionBanner = () => {
+    if (!needsPermission || videos.length === 0) {
+      return null;
+    }
+    return (
+      <TouchableOpacity
+        style={[styles.permissionBanner, {backgroundColor: theme.accent}]}
+        onPress={handleGrantAccess}
+        activeOpacity={0.8}>
+        <Text style={styles.permissionBannerText}>
+          Tap to grant access to {missingLabel} statuses
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   const renderContent = () => {
     if (!loading && videos.length === 0) {
       return (
@@ -81,7 +100,7 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
           }
           subtitle={
             needsPermission
-              ? 'Grant access to the WhatsApp status folder to view and save statuses.'
+              ? `Grant access to the ${missingLabel} status folder to view and save statuses.`
               : 'Video statuses from your contacts will appear here.'
           }
           actionLabel={needsPermission ? 'Grant Access' : undefined}
@@ -105,6 +124,7 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
   return (
     <View style={[styles.container, {backgroundColor: theme.background}]}>
+      {renderPermissionBanner()}
       {renderContent()}
       {selectionMode && (
         <SelectionBar
@@ -122,6 +142,16 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  permissionBanner: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center',
+  },
+  permissionBannerText: {
+    color: '#FFFFFF',
+    fontSize: fontSize.sm,
+    fontWeight: '600',
   },
 });
 
