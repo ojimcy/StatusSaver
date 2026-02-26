@@ -12,12 +12,15 @@ interface SettingsState {
   autoDeleteEnabled: boolean;
   autoDeleteDays: number;
   selectedVariant: WhatsAppVariant;
+  favoriteIds: string[];
 
   setDarkMode: (mode: 'system' | 'light' | 'dark') => void;
   setNotificationConsent: (given: boolean) => void;
   setOnboardingComplete: () => void;
   toggleAutoDelete: () => void;
   setSelectedVariant: (variant: WhatsAppVariant) => void;
+  toggleFavorite: (id: string) => void;
+  isFavorite: (id: string) => boolean;
 }
 
 const useSettingsStore = create<SettingsState>()(
@@ -30,6 +33,7 @@ const useSettingsStore = create<SettingsState>()(
       autoDeleteEnabled: true,
       autoDeleteDays: AUTO_DELETE_DAYS,
       selectedVariant: 'whatsapp',
+      favoriteIds: [],
 
       setDarkMode: (mode: 'system' | 'light' | 'dark') => {
         set({darkMode: mode});
@@ -50,6 +54,19 @@ const useSettingsStore = create<SettingsState>()(
 
       setSelectedVariant: (variant: WhatsAppVariant) => {
         set({selectedVariant: variant});
+      },
+
+      toggleFavorite: (id: string) => {
+        const {favoriteIds} = get();
+        if (favoriteIds.includes(id)) {
+          set({favoriteIds: favoriteIds.filter(fid => fid !== id)});
+        } else {
+          set({favoriteIds: [...favoriteIds, id]});
+        }
+      },
+
+      isFavorite: (id: string) => {
+        return get().favoriteIds.includes(id);
       },
     }),
     {

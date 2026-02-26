@@ -9,6 +9,7 @@ import AdBanner from '../components/AdBanner';
 import EmptyState from '../components/EmptyState';
 import useTheme from '../hooks/useTheme';
 import {saveBatch, shareFile} from '../services/FileService';
+import AdManager from '../services/AdService';
 import {spacing, fontSize} from '../theme/spacing';
 import type {StatusFile} from '../types';
 
@@ -48,6 +49,18 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
   const handleSaveSelected = useCallback(async () => {
     const filesToSave = videos.filter(v => selectedIds.includes(v.id));
+
+    // Gate batch save behind rewarded ad
+    const adManager = AdManager.getInstance();
+    const rewarded = await adManager.showRewarded();
+    if (!rewarded) {
+      Alert.alert(
+        'Watch Ad to Save',
+        'Watch a short ad to save multiple items at once. You can always save one at a time from the viewer.',
+      );
+      return;
+    }
+
     const result = await saveBatch(filesToSave);
     clearSelection();
     Alert.alert(

@@ -57,6 +57,33 @@ const STEPS: StepConfig[] = [
         },
       ]
     : []),
+  {
+    id: 'tip_save',
+    illustration: '\u{1F4BE}',
+    title: 'Save & Batch Save',
+    description:
+      'Tap any status to view it, then hit Save. Long-press to select multiple and save them all at once.',
+    buttonText: 'Next',
+    skipable: true,
+  },
+  {
+    id: 'tip_favorite',
+    illustration: '\u2665',
+    title: 'Favorite Statuses',
+    description:
+      'Tap the heart icon on any status to mark it as a favorite. Your favorites are saved and stay available even after statuses expire.',
+    buttonText: 'Next',
+    skipable: true,
+  },
+  {
+    id: 'ready',
+    illustration: '\u{1F389}',
+    title: "You're All Set!",
+    description:
+      'Start browsing statuses from the Images and Videos tabs. Saved items appear in the Saved tab.',
+    buttonText: "Let's Go",
+    skipable: true,
+  },
 ];
 
 interface OnboardingScreenProps {
@@ -110,8 +137,14 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onComplete}) => {
   }, [step, handleNext, requestStorage, requestSAF, requestNotification]);
 
   const handleSkip = useCallback(() => {
+    // Tutorial steps (tip_*) and 'ready' — skip straight to finish
+    if (step.id.startsWith('tip_') || step.id === 'ready') {
+      setOnboardingComplete();
+      onComplete();
+      return;
+    }
     handleNext();
-  }, [handleNext]);
+  }, [step, handleNext, setOnboardingComplete, onComplete]);
 
   const renderDots = () => (
     <View style={styles.dotsContainer}>
@@ -167,7 +200,9 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onComplete}) => {
               onPress={handleSkip}
               activeOpacity={0.6}>
               <Text style={[styles.skipText, {color: theme.textSecondary}]}>
-                Skip for now
+                {step.id.startsWith('tip_') || step.id === 'ready'
+                  ? 'Skip'
+                  : 'Skip for now'}
               </Text>
             </TouchableOpacity>
           )}

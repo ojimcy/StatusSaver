@@ -13,12 +13,14 @@ import VideoPlayer from '../components/VideoPlayer';
 import {spacing, fontSize} from '../theme/spacing';
 import {saveToGallery, shareFile} from '../services/FileService';
 import AdManager from '../services/AdService';
+import useSettingsStore from '../store/useSettingsStore';
 
 const ViewerScreen = ({navigation, route}: any) => {
   const {file} = route.params;
   const [paused, setPaused] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [favorited, setFavorited] = useState(false);
+  const favorited = useSettingsStore(s => s.favoriteIds.includes(file.id));
+  const toggleFavorite = useSettingsStore(s => s.toggleFavorite);
 
   const handleSave = useCallback(async () => {
     const success = await saveToGallery(file);
@@ -40,8 +42,8 @@ const ViewerScreen = ({navigation, route}: any) => {
   }, [file]);
 
   const handleFavorite = useCallback(() => {
-    setFavorited(prev => !prev);
-  }, []);
+    toggleFavorite(file.id);
+  }, [file.id, toggleFavorite]);
 
   const handleTogglePlay = useCallback(() => {
     setPaused(prev => !prev);
