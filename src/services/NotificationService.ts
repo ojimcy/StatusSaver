@@ -37,6 +37,10 @@ export interface WhatsAppMessageEvent {
   notificationKey: string;
   notificationId: number;
   packageName: string;
+  /** True when native detected a text revert (A → B → A), meaning B was deleted */
+  isRevert?: boolean;
+  /** The deleted message text (only present when isRevert is true) */
+  deletedText?: string;
 }
 
 export interface WhatsAppMessageRemovedEvent {

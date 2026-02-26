@@ -16,14 +16,125 @@ function rowToMessage(row: any): DeletedMessage {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Buffer operations — store every incoming message, mark deleted later
+// ---------------------------------------------------------------------------
+
+/** Buffer an incoming message. Returns the row id. */
+export async function bufferMessage(
+  msg: Omit<DeletedMessage, 'id'> & {notificationKey: string},
+): Promise<number> {
+  const db = await getDatabase();
+
+  // Upsert: if a row with this notification_key exists, update its text
+  // (WhatsApp reuses the same key when a notification is updated)
+  const [existing] = await db.executeSql(
+    'SELECT id FROM deleted_messages WHERE notification_key = ?',
+    [msg.notificationKey],
+  );
+
+  if (existing.rows.length > 0) {
+    const id = existing.rows.item(0).id;
+    // Reset is_deleted=0: if the notification was reposted (regrouping),
+    // the previous removal was NOT a deletion — it's still alive.
+    await db.executeSql(
+      'UPDATE deleted_messages SET message_text = ?, timestamp = ?, is_deleted = 0 WHERE id = ?',
+      [msg.messageText, msg.timestamp, id],
+    );
+    return id;
+  }
+
+  const [result] = await db.executeSql(
+    `INSERT INTO deleted_messages
+       (contact_name, message_text, group_name, is_group, timestamp, is_read,
+        thumbnail_base64, created_at, package_name, notification_key, is_deleted)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+    [
+      msg.contactName,
+      msg.messageText,
+      msg.groupName,
+      msg.isGroup ? 1 : 0,
+      msg.timestamp,
+      msg.isRead ? 1 : 0,
+      msg.thumbnailBase64,
+      msg.createdAt,
+      msg.packageName,
+      msg.notificationKey,
+    ],
+  );
+  return result.insertId;
+}
+
+/** Mark a buffered message as deleted by notification key. Returns true if found. */
+export async function markDeleted(notificationKey: string): Promise<boolean> {
+  const db = await getDatabase();
+  const [result] = await db.executeSql(
+    'UPDATE deleted_messages SET is_deleted = 1 WHERE notification_key = ? AND is_deleted = 0',
+    [notificationKey],
+  );
+  return result.rowsAffected > 0;
+}
+
+/** Mark a buffered message as deleted by contact name (latest non-deleted). Returns true if found. */
+export async function markDeletedByContact(
+  contactName: string,
+): Promise<boolean> {
+  const db = await getDatabase();
+  // Find the most recent buffered (non-deleted) message for this contact
+  const [rows] = await db.executeSql(
+    'SELECT id FROM deleted_messages WHERE contact_name = ? AND is_deleted = 0 ORDER BY timestamp DESC LIMIT 1',
+    [contactName],
+  );
+  if (rows.rows.length === 0) {
+    return false;
+  }
+  const id = rows.rows.item(0).id;
+  await db.executeSql(
+    'UPDATE deleted_messages SET is_deleted = 1 WHERE id = ?',
+    [id],
+  );
+  return true;
+}
+
+/** Get the original buffered message for a notification key (before it was overwritten). */
+export async function getBufferedMessage(
+  notificationKey: string,
+): Promise<DeletedMessage | null> {
+  const db = await getDatabase();
+  const [results] = await db.executeSql(
+    'SELECT * FROM deleted_messages WHERE notification_key = ?',
+    [notificationKey],
+  );
+  if (results.rows.length === 0) {
+    return null;
+  }
+  return rowToMessage(results.rows.item(0));
+}
+
+/** Remove buffered (non-deleted) messages older than the given ms. */
+export async function expireBuffer(maxAgeMs: number): Promise<number> {
+  const db = await getDatabase();
+  const cutoff = Date.now() - maxAgeMs;
+  const [result] = await db.executeSql(
+    'DELETE FROM deleted_messages WHERE is_deleted = 0 AND created_at < ?',
+    [cutoff],
+  );
+  return result.rowsAffected;
+}
+
+// ---------------------------------------------------------------------------
+// Legacy — direct store (used by persistOriginal fallback)
+// ---------------------------------------------------------------------------
+
 export async function storeMessage(
   msg: Omit<DeletedMessage, 'id'>,
 ): Promise<number> {
   const db = await getDatabase();
   const [result] = await db.executeSql(
     `INSERT INTO deleted_messages
-       (contact_name, message_text, group_name, is_group, timestamp, is_read, thumbnail_base64, created_at, package_name)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (contact_name, message_text, group_name, is_group, timestamp, is_read,
+        thumbnail_base64, created_at, package_name, is_deleted)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
     [
       msg.contactName,
       msg.messageText,
@@ -39,12 +150,16 @@ export async function storeMessage(
   return result.insertId;
 }
 
+// ---------------------------------------------------------------------------
+// Read operations — UI-facing, only return is_deleted = 1
+// ---------------------------------------------------------------------------
+
 export async function getMessages(
   filter?: MessageFilter,
   packageName?: string,
 ): Promise<DeletedMessage[]> {
   const db = await getDatabase();
-  const conditions: string[] = [];
+  const conditions: string[] = ['is_deleted = 1'];
   const params: any[] = [];
 
   if (packageName) {
@@ -71,8 +186,7 @@ export async function getMessages(
     }
   }
 
-  const whereClause =
-    conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
   const [results] = await db.executeSql(
     `SELECT * FROM deleted_messages ${whereClause} ORDER BY timestamp DESC`,
@@ -91,7 +205,7 @@ export async function getMessagesByContact(
   packageName?: string,
 ): Promise<DeletedMessage[]> {
   const db = await getDatabase();
-  const conditions = ['contact_name = ?'];
+  const conditions = ['contact_name = ?', 'is_deleted = 1'];
   const params: any[] = [contactName];
 
   if (packageName) {
@@ -115,10 +229,14 @@ export async function getUniqueContacts(
   packageName?: string,
 ): Promise<{name: string; count: number; lastMessage: string}[]> {
   const db = await getDatabase();
-  const whereClause = packageName ? 'WHERE package_name = ?' : '';
-  const subWhereClause = packageName
-    ? 'AND d2.package_name = ?'
-    : '';
+  const conditions = ['is_deleted = 1'];
+  const subConditions = ['d2.is_deleted = 1'];
+
+  if (packageName) {
+    conditions.push('package_name = ?');
+    subConditions.push('d2.package_name = ?');
+  }
+
   const params: any[] = packageName
     ? [packageName, packageName]
     : [];
@@ -128,10 +246,10 @@ export async function getUniqueContacts(
        contact_name,
        COUNT(*) as count,
        (SELECT message_text FROM deleted_messages d2
-        WHERE d2.contact_name = d1.contact_name ${subWhereClause}
+        WHERE d2.contact_name = d1.contact_name AND ${subConditions.join(' AND ')}
         ORDER BY timestamp DESC LIMIT 1) as last_message
      FROM deleted_messages d1
-     ${whereClause}
+     WHERE ${conditions.join(' AND ')}
      GROUP BY contact_name
      ORDER BY MAX(timestamp) DESC`,
     params,
@@ -163,13 +281,13 @@ export async function deleteMessage(id: number): Promise<void> {
 
 export async function deleteAllMessages(): Promise<void> {
   const db = await getDatabase();
-  await db.executeSql('DELETE FROM deleted_messages');
+  await db.executeSql('DELETE FROM deleted_messages WHERE is_deleted = 1');
 }
 
 export async function exportMessages(): Promise<string> {
   const db = await getDatabase();
   const [results] = await db.executeSql(
-    'SELECT * FROM deleted_messages ORDER BY timestamp ASC',
+    'SELECT * FROM deleted_messages WHERE is_deleted = 1 ORDER BY timestamp ASC',
   );
 
   const lines: string[] = [];
@@ -189,12 +307,12 @@ export async function exportMessages(): Promise<string> {
   return lines.join('\n');
 }
 
-/** Deletes messages older than the specified number of days. Returns count deleted. */
+/** Deletes confirmed-deleted messages older than the specified number of days. */
 export async function autoExpire(days: number): Promise<number> {
   const db = await getDatabase();
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
   const [result] = await db.executeSql(
-    'DELETE FROM deleted_messages WHERE created_at < ?',
+    'DELETE FROM deleted_messages WHERE is_deleted = 1 AND created_at < ?',
     [cutoff],
   );
   return result.rowsAffected;

@@ -30,13 +30,22 @@ export default function useMessages() {
     [searchMessages, packageName],
   );
 
+  const fetchContactsForVariant = useCallback(
+    () => fetchContacts(packageName),
+    [fetchContacts, packageName],
+  );
+
+  const fetchMessagesForVariant = useCallback(
+    (contactName: string) => fetchMessages(contactName, packageName),
+    [fetchMessages, packageName],
+  );
+
   return {
     contacts,
     messages: currentMessages,
     loading,
-    fetchContacts: () => fetchContacts(packageName),
-    fetchMessages: (contactName: string) =>
-      fetchMessages(contactName, packageName),
+    fetchContacts: fetchContactsForVariant,
+    fetchMessages: fetchMessagesForVariant,
     search,
   };
 }

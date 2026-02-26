@@ -14,9 +14,6 @@ async function runMigrations(db: SQLiteDatabase): Promise<void> {
   );
 
   await db.executeSql(CREATE_MESSAGES_TABLE);
-  for (const indexSql of CREATE_INDEXES) {
-    await db.executeSql(indexSql);
-  }
 
   // Migration v1: clear messages that were captured before the deleted-only filter
   const [vResult] = await db.executeSql(
@@ -39,9 +36,47 @@ async function runMigrations(db: SQLiteDatabase): Promise<void> {
     } catch {
       // Column may already exist if table was freshly created
     }
+  }
+
+  if (currentVersion < 5) {
+    // v5: clear previous data; now using debounced removal + text detection
+    await db.executeSql('DELETE FROM deleted_messages;');
+  }
+
+  if (currentVersion < 6) {
+    // v6: add notification_key + is_deleted columns for DB-backed message buffer
+    try {
+      await db.executeSql(
+        'ALTER TABLE deleted_messages ADD COLUMN notification_key TEXT;',
+      );
+    } catch {
+      // Column may already exist
+    }
+    try {
+      await db.executeSql(
+        'ALTER TABLE deleted_messages ADD COLUMN is_deleted INTEGER DEFAULT 0;',
+      );
+    } catch {
+      // Column may already exist
+    }
+    // Clear old data — fresh start with new detection approach
+    await db.executeSql('DELETE FROM deleted_messages;');
+  }
+
+  if (currentVersion < 7) {
+    // v7: clean up system notifications that were captured before native filters
     await db.executeSql(
-      "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '3');",
+      "DELETE FROM deleted_messages WHERE message_text IN ('Checking for new messages', 'Downloading messages') OR contact_name IN ('WhatsApp', 'WhatsApp Business', 'WA Business');",
     );
+  }
+
+  await db.executeSql(
+    "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '7');",
+  );
+
+  // Create indexes after all migrations (columns must exist first)
+  for (const indexSql of CREATE_INDEXES) {
+    await db.executeSql(indexSql);
   }
 }
 

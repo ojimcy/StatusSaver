@@ -16,6 +16,10 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * NotificationListenerService that captures WhatsApp notifications.
@@ -37,6 +41,30 @@ public class WhatsAppNotificationService extends NotificationListenerService {
     // Event names emitted to React Native
     private static final String EVENT_MESSAGE = "onWhatsAppMessage";
     private static final String EVENT_MESSAGE_REMOVED = "onWhatsAppMessageRemoved";
+
+    // WA Business group title format: "GroupName (N messages): SenderName"
+    // or "GroupName (N messages): ~ SenderName"
+    private static final Pattern WA_BUSINESS_GROUP_PATTERN =
+            Pattern.compile("^(.+?)\\s*\\(\\d+\\s+messages?\\):\\s*~?\\s*(.+)$");
+
+    // Max time between text change and revert to consider it a deletion (60 seconds)
+    private static final long REVERT_WINDOW_MS = 60_000;
+
+    /**
+     * Per-key text history for detecting message reverts (1-on-1 deletion detection).
+     * When WhatsApp "Delete for Everyone" is used in a 1-on-1 chat, the notification
+     * text reverts to the previous message (A → B → A) instead of showing
+     * "This message was deleted". We detect this revert pattern here.
+     */
+    private static class TextEntry {
+        final String text;
+        final long timestamp;
+        TextEntry(String text, long timestamp) {
+            this.text = text;
+            this.timestamp = timestamp;
+        }
+    }
+    private final HashMap<String, LinkedList<TextEntry>> textHistory = new HashMap<>();
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
@@ -79,7 +107,10 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             String msgLower = messageText.toLowerCase();
             if (msgLower.matches(".*\\d+ new messages?.*")
                     || msgLower.matches(".*\\d+ messages? from \\d+ chats?.*")
-                    || msgLower.matches(".*\\d+ new message.*")) {
+                    || msgLower.matches(".*\\d+ new message.*")
+                    || msgLower.equals("checking for new messages")
+                    || msgLower.equals("downloading messages")
+                    || msgLower.startsWith("waiting for message")) {
                 return;
             }
 
@@ -94,10 +125,19 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             boolean isGroup = false;
 
             if (title.contains(" @ ")) {
+                // Standard WhatsApp format: "Contact @ GroupName"
                 String[] parts = title.split(" @ ", 2);
                 if (parts.length == 2) {
                     contactName = parts[0].trim();
                     groupName = parts[1].trim();
+                    isGroup = true;
+                }
+            } else {
+                // WA Business format: "GroupName (N messages): SenderName"
+                Matcher matcher = WA_BUSINESS_GROUP_PATTERN.matcher(title);
+                if (matcher.matches()) {
+                    groupName = matcher.group(1).trim();
+                    contactName = matcher.group(2).trim();
                     isGroup = true;
                 }
             }
@@ -164,6 +204,58 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             eventData.putString("notificationKey", sbn.getKey());
             eventData.putInt("notificationId", sbn.getId());
 
+            // --- Revert detection for 1-on-1 chats ---
+            // WhatsApp doesn't show "This message was deleted" in notifications;
+            // it reverts to the previous message text. Detect pattern: A → B → A.
+            if (!isGroup) {
+                String key = sbn.getKey();
+                long now = System.currentTimeMillis();
+                LinkedList<TextEntry> history = textHistory.get(key);
+                if (history == null) {
+                    history = new LinkedList<>();
+                    textHistory.put(key, history);
+                }
+
+                boolean isRevert = false;
+                String deletedText = null;
+
+                if (history.size() >= 2) {
+                    TextEntry last = history.getLast();
+                    // Only detect reverts within a time window
+                    if ((now - last.timestamp) < REVERT_WINDOW_MS) {
+                        // Check if current text matches any entry before the last
+                        for (int i = history.size() - 2; i >= 0; i--) {
+                            if (messageText.equals(history.get(i).text)) {
+                                isRevert = true;
+                                deletedText = last.text;
+                                // Trim history to the revert point
+                                while (history.size() > i + 1) {
+                                    history.removeLast();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Update history (only if not a revert and text actually changed)
+                if (!isRevert) {
+                    if (history.isEmpty() || !messageText.equals(history.getLast().text)) {
+                        history.addLast(new TextEntry(messageText, now));
+                        if (history.size() > 5) {
+                            history.removeFirst();
+                        }
+                    }
+                }
+
+                if (isRevert && deletedText != null) {
+                    eventData.putBoolean("isRevert", true);
+                    eventData.putString("deletedText", deletedText);
+                    Log.d(TAG, "Revert detected for " + contactName
+                            + ": \"" + deletedText + "\" was deleted");
+                }
+            }
+
             // Emit event to React Native
             emitEvent(EVENT_MESSAGE, eventData);
 
@@ -196,8 +288,28 @@ public class WhatsAppNotificationService extends NotificationListenerService {
         }
 
         try {
+            // Skip group summary removals (not individual messages)
+            if ((sbn.getNotification().flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+                return;
+            }
+
             Notification notification = sbn.getNotification();
             Bundle extras = notification != null ? notification.extras : null;
+
+            // Skip system notification removals
+            if (extras != null) {
+                CharSequence text = extras.getCharSequence(Notification.EXTRA_TEXT);
+                if (text != null) {
+                    String textLower = text.toString().toLowerCase();
+                    if (textLower.equals("checking for new messages")
+                            || textLower.equals("downloading messages")
+                            || textLower.startsWith("waiting for message")
+                            || textLower.matches(".*\\d+ new messages?.*")
+                            || textLower.matches(".*\\d+ messages? from \\d+ chats?.*")) {
+                        return;
+                    }
+                }
+            }
 
             WritableMap eventData = Arguments.createMap();
             eventData.putString("notificationKey", sbn.getKey());
@@ -220,6 +332,9 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             }
 
             emitEvent(EVENT_MESSAGE_REMOVED, eventData);
+
+            // Clean up text history for this key
+            textHistory.remove(sbn.getKey());
 
             Log.d(TAG, "WhatsApp notification removed (APP_CANCEL): " + sbn.getKey());
 
