@@ -40,7 +40,7 @@ const MessageDetailScreen = ({
 }) => {
   const {contactName} = route.params;
   const {theme} = useTheme();
-  const {messages, fetchMessages, loading} = useMessages();
+  const {messages, fetchMessages, markContactRead, loading} = useMessages();
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -48,7 +48,8 @@ const MessageDetailScreen = ({
       title: contactName,
     });
     fetchMessages(contactName);
-  }, [contactName, fetchMessages, navigation]);
+    markContactRead(contactName);
+  }, [contactName, fetchMessages, markContactRead, navigation]);
 
   const renderMessage = ({
     item,

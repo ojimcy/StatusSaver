@@ -1,6 +1,7 @@
 import {useEffect, useCallback} from 'react';
 import useMessageStore from '../store/useMessageStore';
 import useSettingsStore from '../store/useSettingsStore';
+import {markAllReadByContact} from '../services/MessageService';
 
 const VARIANT_TO_PACKAGE = {
   whatsapp: 'com.whatsapp',
@@ -40,12 +41,21 @@ export default function useMessages() {
     [fetchMessages, packageName],
   );
 
+  const markContactRead = useCallback(
+    async (contactName: string) => {
+      await markAllReadByContact(contactName, packageName);
+      fetchContacts(packageName);
+    },
+    [fetchContacts, packageName],
+  );
+
   return {
     contacts,
     messages: currentMessages,
     loading,
     fetchContacts: fetchContactsForVariant,
     fetchMessages: fetchMessagesForVariant,
+    markContactRead,
     search,
   };
 }

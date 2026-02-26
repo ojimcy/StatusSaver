@@ -244,7 +244,7 @@ export async function getUniqueContacts(
   const [results] = await db.executeSql(
     `SELECT
        contact_name,
-       COUNT(*) as count,
+       SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread_count,
        (SELECT message_text FROM deleted_messages d2
         WHERE d2.contact_name = d1.contact_name AND ${subConditions.join(' AND ')}
         ORDER BY timestamp DESC LIMIT 1) as last_message
@@ -260,7 +260,7 @@ export async function getUniqueContacts(
     const row = results.rows.item(i);
     contacts.push({
       name: row.contact_name,
-      count: row.count,
+      count: row.unread_count,
       lastMessage: row.last_message ?? '',
     });
   }
@@ -272,6 +272,26 @@ export async function markAsRead(id: number): Promise<void> {
   await db.executeSql('UPDATE deleted_messages SET is_read = 1 WHERE id = ?', [
     id,
   ]);
+}
+
+/** Mark all deleted messages from a contact as read. */
+export async function markAllReadByContact(
+  contactName: string,
+  packageName?: string,
+): Promise<void> {
+  const db = await getDatabase();
+  const conditions = ['contact_name = ?', 'is_deleted = 1', 'is_read = 0'];
+  const params: any[] = [contactName];
+
+  if (packageName) {
+    conditions.push('package_name = ?');
+    params.push(packageName);
+  }
+
+  await db.executeSql(
+    `UPDATE deleted_messages SET is_read = 1 WHERE ${conditions.join(' AND ')}`,
+    params,
+  );
 }
 
 export async function deleteMessage(id: number): Promise<void> {
