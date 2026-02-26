@@ -70,8 +70,13 @@ async function runMigrations(db: SQLiteDatabase): Promise<void> {
     );
   }
 
+  if (currentVersion < 8) {
+    // v8: wipe all data — recency-based removal filtering replaces old detection logic
+    await db.executeSql('DELETE FROM deleted_messages;');
+  }
+
   await db.executeSql(
-    "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '7');",
+    "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '8');",
   );
 
   // Create indexes after all migrations (columns must exist first)

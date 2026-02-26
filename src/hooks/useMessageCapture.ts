@@ -10,7 +10,6 @@ import {isNotificationListenerEnabled} from '../services/NotificationService';
 import {
   bufferMessage,
   markDeleted,
-  markDeletedByContact,
   storeMessage,
   expireBuffer,
 } from '../services/MessageService';
@@ -25,6 +24,12 @@ const BUFFER_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 const REMOVAL_DEBOUNCE_MS = 800;
 const MAX_REMOVALS_PER_CONTACT = 2;
+
+// Only trust a notification removal as a deletion if the notification was
+// updated (via onNotificationPosted) within this window before the removal.
+// A "stale" removal (notification sitting unchanged for a long time) is almost
+// certainly the user opening the chat, not a message deletion.
+const REMOVAL_RECENCY_THRESHOLD_MS = 5_000;
 
 const DELETION_PATTERNS = [
   /this message was deleted/i,
@@ -67,23 +72,46 @@ export default function useMessageCapture(): void {
 
       for (const [contact, removals] of byContact) {
         console.log(TAG, `Contact "${contact}": ${removals.length} removals`);
-        if (removals.length <= MAX_REMOVALS_PER_CONTACT) {
-          for (const removed of removals) {
-            try {
-              const found = await markDeleted(removed.notificationKey);
-              console.log(
-                TAG,
-                `markDeleted(removal) key=${removed.notificationKey} found=${found}`,
-              );
-            } catch (error) {
-              console.error(TAG, 'markDeleted(removal) failed:', error);
-            }
-          }
-        } else {
+        if (removals.length > MAX_REMOVALS_PER_CONTACT) {
           console.log(
             TAG,
             `Skipping "${contact}" — ${removals.length} removals (likely chat opened)`,
           );
+          continue;
+        }
+
+        for (const removed of removals) {
+          // Recency filter: only trust the removal as a deletion if the
+          // notification was recently updated. A stale notification being
+          // removed almost certainly means the user opened the chat.
+          const ms = removed.msSinceLastUpdate;
+          if (ms >= 0 && ms > REMOVAL_RECENCY_THRESHOLD_MS) {
+            console.log(
+              TAG,
+              `Skipping removal key=${removed.notificationKey} — stale (${ms}ms since last update, likely chat opened)`,
+            );
+            continue;
+          }
+
+          // If msSinceLastUpdate is -1 (never tracked / service restarted),
+          // also skip — we have no evidence this was a deletion.
+          if (ms < 0) {
+            console.log(
+              TAG,
+              `Skipping removal key=${removed.notificationKey} — no update tracking data`,
+            );
+            continue;
+          }
+
+          try {
+            const found = await markDeleted(removed.notificationKey);
+            console.log(
+              TAG,
+              `markDeleted(removal) key=${removed.notificationKey} found=${found} (${ms}ms since update)`,
+            );
+          } catch (error) {
+            console.error(TAG, 'markDeleted(removal) failed:', error);
+          }
         }
       }
     }
@@ -110,10 +138,10 @@ export default function useMessageCapture(): void {
           try {
             const found = await markDeleted(msg.notificationKey);
             console.log(TAG, `markDeleted(text) by key: found=${found}`);
-            if (!found) {
-              const fallback = await markDeletedByContact(msg.contactName);
-              console.log(TAG, `markDeletedByContact fallback: found=${fallback}`);
-            }
+            // Note: we intentionally do NOT fall back to markDeletedByContact()
+            // because it would mark the latest message for the contact which
+            // may be a completely different, unrelated message — causing false positives.
+            // If the key doesn't match, the original was never captured (honest failure).
           } catch (error) {
             console.error(TAG, 'markDeleted(text) failed:', error);
           }

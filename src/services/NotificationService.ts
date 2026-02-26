@@ -49,6 +49,10 @@ export interface WhatsAppMessageRemovedEvent {
   timestamp: number;
   messageText: string;
   title: string;
+  /** Milliseconds since this notification was last updated via onNotificationPosted.
+   *  -1 if never tracked. A low value (<5s) strongly indicates deletion;
+   *  a high value (>30s) likely means the user opened the chat. */
+  msSinceLastUpdate: number;
 }
 
 /**

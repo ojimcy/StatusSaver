@@ -50,6 +50,9 @@ public class WhatsAppNotificationService extends NotificationListenerService {
     // Max time between text change and revert to consider it a deletion (60 seconds)
     private static final long REVERT_WINDOW_MS = 60_000;
 
+    // Max age for textHistory entries before they are pruned (10 minutes)
+    private static final long TEXT_HISTORY_MAX_AGE_MS = 10 * 60_000;
+
     /**
      * Per-key text history for detecting message reverts (1-on-1 deletion detection).
      * When WhatsApp "Delete for Everyone" is used in a 1-on-1 chat, the notification
@@ -65,6 +68,13 @@ public class WhatsAppNotificationService extends NotificationListenerService {
         }
     }
     private final HashMap<String, LinkedList<TextEntry>> textHistory = new HashMap<>();
+
+    /**
+     * Tracks the last time each notification key was updated via onNotificationPosted.
+     * Used to determine if a subsequent removal is likely a deletion (recent update)
+     * or just the user opening the chat (stale notification removed).
+     */
+    private final HashMap<String, Long> lastUpdateTime = new HashMap<>();
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
@@ -210,6 +220,15 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             if (!isGroup) {
                 String key = sbn.getKey();
                 long now = System.currentTimeMillis();
+
+                // Prune stale textHistory entries to prevent memory leaks
+                // (since we no longer clear history on notification removal)
+                textHistory.entrySet().removeIf(entry -> {
+                    LinkedList<TextEntry> h = entry.getValue();
+                    if (h.isEmpty()) return true;
+                    return (now - h.getLast().timestamp) > TEXT_HISTORY_MAX_AGE_MS;
+                });
+
                 LinkedList<TextEntry> history = textHistory.get(key);
                 if (history == null) {
                     history = new LinkedList<>();
@@ -255,6 +274,9 @@ public class WhatsAppNotificationService extends NotificationListenerService {
                             + ": \"" + deletedText + "\" was deleted");
                 }
             }
+
+            // Track when this notification was last updated
+            lastUpdateTime.put(sbn.getKey(), System.currentTimeMillis());
 
             // Emit event to React Native
             emitEvent(EVENT_MESSAGE, eventData);
@@ -317,6 +339,16 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             eventData.putDouble("timestamp", sbn.getPostTime());
             eventData.putString("packageName", packageName);
 
+            // Include how long ago this notification was last updated.
+            // A recent update followed by removal strongly indicates deletion.
+            // A stale notification being removed likely means the user opened the chat.
+            Long lastUpdate = lastUpdateTime.get(sbn.getKey());
+            long msSinceLastUpdate = -1;
+            if (lastUpdate != null) {
+                msSinceLastUpdate = System.currentTimeMillis() - lastUpdate;
+            }
+            eventData.putDouble("msSinceLastUpdate", msSinceLastUpdate);
+
             // Include message text if available (helps identify which message was removed)
             if (extras != null) {
                 CharSequence textSequence = extras.getCharSequence(Notification.EXTRA_TEXT);
@@ -333,10 +365,12 @@ public class WhatsAppNotificationService extends NotificationListenerService {
 
             emitEvent(EVENT_MESSAGE_REMOVED, eventData);
 
-            // Clean up text history for this key
-            textHistory.remove(sbn.getKey());
+            // Clean up tracking data for this key (but NOT textHistory —
+            // it may be needed for revert detection if WhatsApp regroups notifications).
+            lastUpdateTime.remove(sbn.getKey());
 
-            Log.d(TAG, "WhatsApp notification removed (APP_CANCEL): " + sbn.getKey());
+            Log.d(TAG, "WhatsApp notification removed (APP_CANCEL): " + sbn.getKey()
+                    + " msSinceLastUpdate=" + msSinceLastUpdate);
 
         } catch (Exception e) {
             Log.e(TAG, "Error processing removed WhatsApp notification", e);
