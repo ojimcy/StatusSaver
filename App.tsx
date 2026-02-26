@@ -3,9 +3,11 @@ import {
   StatusBar,
   StyleSheet,
   Platform,
+  AppState,
   View,
   Text,
 } from 'react-native';
+import type {AppStateStatus} from 'react-native';
 import {
   NavigationContainer,
   DarkTheme,
@@ -14,7 +16,7 @@ import {
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import mobileAds from 'react-native-google-mobile-ads';
+import AdManager from './src/services/AdService';
 
 import HomeScreen from './src/screens/HomeScreen';
 import VideosScreen from './src/screens/VideosScreen';
@@ -374,12 +376,32 @@ function App(): React.JSX.Element {
       };
 
   useEffect(() => {
-    // Initialize AdMob
-    mobileAds()
+    // Initialize AdMob + preload all ad formats via AdManager
+    AdManager.getInstance()
       .initialize()
       .then(() => setAdsInitialized(true))
       .catch((err: Error) => console.warn('AdMob init failed:', err));
   }, []);
+
+  // App Open ad: track foreground/background transitions
+  useEffect(() => {
+    if (showOnboarding) {
+      return;
+    }
+
+    const adManager = AdManager.getInstance();
+
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        adManager.onBackground();
+      } else if (nextAppState === 'active') {
+        adManager.showAppOpen();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [showOnboarding]);
 
   // Update showOnboarding when store changes
   useEffect(() => {

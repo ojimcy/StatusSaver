@@ -1,6 +1,7 @@
 import mobileAds, {
   InterstitialAd,
   RewardedAd,
+  AppOpenAd,
   AdEventType,
   RewardedAdEventType,
 } from 'react-native-google-mobile-ads';
@@ -10,16 +11,41 @@ import {
   INTERSTITIAL_COOLDOWN_MS,
 } from '../utils/constants';
 
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAYS_MS = [5000, 15000, 30000];
+const APP_OPEN_MIN_BACKGROUND_MS = 30000;
+
+type AdType = 'interstitial' | 'rewarded' | 'appOpen';
+
 class AdManager {
   private static instance: AdManager;
 
   private interstitialAd: InterstitialAd | null = null;
   private rewardedAd: RewardedAd | null = null;
+  private appOpenAd: AppOpenAd | null = null;
+
   private interstitialLoaded = false;
   private rewardedLoaded = false;
+  private appOpenLoaded = false;
 
   private actionCount = 0;
   private lastInterstitialTime = 0;
+
+  // Retry state
+  private retryCounts: Record<AdType, number> = {
+    interstitial: 0,
+    rewarded: 0,
+    appOpen: 0,
+  };
+  private retryTimers: Record<AdType, ReturnType<typeof setTimeout> | null> = {
+    interstitial: null,
+    rewarded: null,
+    appOpen: null,
+  };
+
+  // App Open state
+  private lastBackgroundTime = 0;
+  private hasBeenBackgrounded = false;
 
   private constructor() {}
 
@@ -35,6 +61,7 @@ class AdManager {
       await mobileAds().initialize();
       this.loadInterstitial();
       this.loadRewarded();
+      this.loadAppOpen();
     } catch (error) {
       console.error('AdManager.initialize failed:', error);
     }
@@ -44,6 +71,39 @@ class AdManager {
     return AD_CONFIG.bannerId;
   }
 
+  // --- Retry logic ---
+
+  private retryLoad(adType: AdType): void {
+    const count = this.retryCounts[adType];
+    if (count >= MAX_RETRY_ATTEMPTS) {
+      console.warn(`AdManager: ${adType} retry limit reached`);
+      return;
+    }
+
+    const delay = RETRY_DELAYS_MS[count];
+
+    if (this.retryTimers[adType]) {
+      clearTimeout(this.retryTimers[adType]!);
+    }
+
+    this.retryTimers[adType] = setTimeout(() => {
+      this.retryCounts[adType]++;
+      switch (adType) {
+        case 'interstitial':
+          this.loadInterstitial();
+          break;
+        case 'rewarded':
+          this.loadRewarded();
+          break;
+        case 'appOpen':
+          this.loadAppOpen();
+          break;
+      }
+    }, delay);
+  }
+
+  // --- Interstitial ---
+
   loadInterstitial(): void {
     try {
       this.interstitialAd = InterstitialAd.createForAdRequest(
@@ -52,16 +112,18 @@ class AdManager {
 
       this.interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
         this.interstitialLoaded = true;
+        this.retryCounts.interstitial = 0;
       });
 
       this.interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
         this.interstitialLoaded = false;
-        // Preload the next one
+        this.retryCounts.interstitial = 0;
         this.loadInterstitial();
       });
 
       this.interstitialAd.addAdEventListener(AdEventType.ERROR, () => {
         this.interstitialLoaded = false;
+        this.retryLoad('interstitial');
       });
 
       this.interstitialAd.load();
@@ -70,10 +132,6 @@ class AdManager {
     }
   }
 
-  /**
-   * Shows interstitial if loaded AND frequency cap allows it
-   * (every Nth action, with minimum time gap).
-   */
   showInterstitial(): boolean {
     const now = Date.now();
     const timeSinceLast = now - this.lastInterstitialTime;
@@ -97,21 +155,26 @@ class AdManager {
     }
   }
 
+  // --- Rewarded ---
+
   loadRewarded(): void {
     try {
       this.rewardedAd = RewardedAd.createForAdRequest(AD_CONFIG.rewardedId);
 
       this.rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
         this.rewardedLoaded = true;
+        this.retryCounts.rewarded = 0;
       });
 
       this.rewardedAd.addAdEventListener(AdEventType.CLOSED, () => {
         this.rewardedLoaded = false;
+        this.retryCounts.rewarded = 0;
         this.loadRewarded();
       });
 
       this.rewardedAd.addAdEventListener(AdEventType.ERROR, () => {
         this.rewardedLoaded = false;
+        this.retryLoad('rewarded');
       });
 
       this.rewardedAd.load();
@@ -155,6 +218,65 @@ class AdManager {
       }
     });
   }
+
+  // --- App Open ---
+
+  loadAppOpen(): void {
+    try {
+      this.appOpenAd = AppOpenAd.createForAdRequest(AD_CONFIG.appOpenId);
+
+      this.appOpenAd.addAdEventListener(AdEventType.LOADED, () => {
+        this.appOpenLoaded = true;
+        this.retryCounts.appOpen = 0;
+      });
+
+      this.appOpenAd.addAdEventListener(AdEventType.CLOSED, () => {
+        this.appOpenLoaded = false;
+        this.retryCounts.appOpen = 0;
+        this.loadAppOpen();
+      });
+
+      this.appOpenAd.addAdEventListener(AdEventType.ERROR, () => {
+        this.appOpenLoaded = false;
+        this.retryLoad('appOpen');
+      });
+
+      this.appOpenAd.load();
+    } catch (error) {
+      console.error('AdManager.loadAppOpen failed:', error);
+    }
+  }
+
+  onBackground(): void {
+    this.lastBackgroundTime = Date.now();
+    this.hasBeenBackgrounded = true;
+  }
+
+  showAppOpen(): boolean {
+    if (!this.hasBeenBackgrounded) {
+      return false;
+    }
+
+    const backgroundDuration = Date.now() - this.lastBackgroundTime;
+    if (backgroundDuration < APP_OPEN_MIN_BACKGROUND_MS) {
+      return false;
+    }
+
+    if (!this.appOpenLoaded || !this.appOpenAd) {
+      return false;
+    }
+
+    try {
+      this.appOpenAd.show();
+      this.appOpenLoaded = false;
+      return true;
+    } catch (error) {
+      console.error('AdManager.showAppOpen failed:', error);
+      return false;
+    }
+  }
+
+  // --- Action tracking ---
 
   recordAction(): void {
     this.actionCount++;

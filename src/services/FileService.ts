@@ -1,10 +1,30 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
+import {Platform} from 'react-native';
+import {requestStoragePermission} from './PermissionService';
 import type {StatusFile} from '../types';
+
+/**
+ * Trigger Android MediaScanner so the saved file appears in gallery queries
+ * immediately instead of waiting for the next system scan.
+ */
+async function scanFile(filePath: string): Promise<void> {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+  try {
+    await RNFS.scanFile(filePath);
+  } catch {
+    // scanFile not critical — gallery will catch up eventually
+  }
+}
 
 export async function saveToGallery(file: StatusFile): Promise<boolean> {
   try {
+    // Ensure write permission is granted
+    await requestStoragePermission();
+
     const type = file.type === 'video' ? 'video' : 'photo';
     let uriToSave = file.uri;
 
@@ -18,11 +38,24 @@ export async function saveToGallery(file: StatusFile): Promise<boolean> {
       }`;
       await RNFS.copyFile(file.uri, tempPath);
       uriToSave = `file://${tempPath}`;
-      await CameraRoll.save(uriToSave, {type, album: 'StatusSaver'});
+      const savedUri = await CameraRoll.save(uriToSave, {
+        type,
+        album: 'StatusSaver',
+      });
+      // Trigger media scan so it shows up in gallery queries immediately
+      if (savedUri) {
+        await scanFile(savedUri);
+      }
       // Clean up temp file
       await RNFS.unlink(tempPath).catch(() => {});
     } else {
-      await CameraRoll.save(uriToSave, {type, album: 'StatusSaver'});
+      const savedUri = await CameraRoll.save(uriToSave, {
+        type,
+        album: 'StatusSaver',
+      });
+      if (savedUri) {
+        await scanFile(savedUri);
+      }
     }
 
     return true;

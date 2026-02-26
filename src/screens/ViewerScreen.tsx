@@ -50,6 +50,9 @@ const ViewerScreen = ({navigation, route}: any) => {
   }, []);
 
   const handleBack = useCallback(() => {
+    const adManager = AdManager.getInstance();
+    adManager.recordAction();
+    adManager.showInterstitial();
     navigation.goBack();
   }, [navigation]);
 

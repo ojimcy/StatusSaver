@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import {View, Text, FlatList, StyleSheet} from 'react-native';
 import useMessages from '../hooks/useMessages';
 import useTheme from '../hooks/useTheme';
+import AdBanner from '../components/AdBanner';
 import {spacing, fontSize, borderRadius} from '../theme/spacing';
 import type {DeletedMessage} from '../types';
 
@@ -117,6 +118,7 @@ const MessageDetailScreen = ({
           }
         }}
       />
+      <AdBanner />
     </View>
   );
 };

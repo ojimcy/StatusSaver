@@ -19,6 +19,13 @@ declare module 'react-native-google-mobile-ads' {
     show(): void;
   }
 
+  export class AppOpenAd {
+    static createForAdRequest(adUnitId: string, requestOptions?: any): AppOpenAd;
+    addAdEventListener(event: string, listener: AdEventListener): () => void;
+    load(): void;
+    show(): Promise<void>;
+  }
+
   export const AdEventType: {
     LOADED: string;
     CLOSED: string;
@@ -36,6 +43,7 @@ declare module 'react-native-google-mobile-ads' {
     BANNER: string;
     INTERSTITIAL: string;
     REWARDED: string;
+    APP_OPEN: string;
   };
 
   export enum BannerAdSize {

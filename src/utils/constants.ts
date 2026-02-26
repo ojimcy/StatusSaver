@@ -20,12 +20,14 @@ const ANDROID_AD_IDS: AdConfig = {
   bannerId: 'ca-app-pub-3940256099942544/6300978111',
   interstitialId: 'ca-app-pub-3940256099942544/1033173712',
   rewardedId: 'ca-app-pub-3940256099942544/5224354917',
+  appOpenId: 'ca-app-pub-3940256099942544/9257395921',
 };
 
 const IOS_AD_IDS: AdConfig = {
   bannerId: 'ca-app-pub-3940256099942544/2934735716',
   interstitialId: 'ca-app-pub-3940256099942544/4411468910',
   rewardedId: 'ca-app-pub-3940256099942544/1712485313',
+  appOpenId: 'ca-app-pub-3940256099942544/5575463023',
 };
 
 export const AD_CONFIG: AdConfig =
@@ -33,5 +35,5 @@ export const AD_CONFIG: AdConfig =
 
 // App configuration
 export const AUTO_DELETE_DAYS = 90;
-export const INTERSTITIAL_FREQUENCY = 3;
+export const INTERSTITIAL_FREQUENCY = 2;
 export const INTERSTITIAL_COOLDOWN_MS = 60000;

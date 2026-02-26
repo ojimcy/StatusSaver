@@ -1,9 +1,12 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback} from 'react';
 import {View, StyleSheet} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import StatusGrid from '../components/StatusGrid';
 import EmptyState from '../components/EmptyState';
+import AdBanner from '../components/AdBanner';
 import useTheme from '../hooks/useTheme';
+import {requestStoragePermission} from '../services/PermissionService';
 import type {StatusFile} from '../types';
 
 const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
@@ -14,11 +17,24 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const loadSaved = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await CameraRoll.getPhotos({
+      // Ensure we have read permission before querying gallery
+      await requestStoragePermission();
+
+      // Try album-specific query first
+      let result = await CameraRoll.getPhotos({
         first: 100,
         assetType: 'All',
         groupName: 'StatusSaver',
       });
+
+      // Fallback: some devices use different album naming
+      if (result.edges.length === 0) {
+        result = await CameraRoll.getPhotos({
+          first: 100,
+          assetType: 'All',
+          groupName: 'Status Saver',
+        });
+      }
 
       const files: StatusFile[] = result.edges.map((edge, index) => {
         const node = edge.node;
@@ -39,15 +55,18 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
       setSavedStatuses(files);
     } catch (error) {
-      // If album doesn't exist yet, just show empty
+      console.warn('SavedScreen.loadSaved failed:', error);
       setSavedStatuses([]);
     }
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    loadSaved();
-  }, [loadSaved]);
+  // Reload every time the tab gains focus (picks up newly saved items)
+  useFocusEffect(
+    useCallback(() => {
+      loadSaved();
+    }, [loadSaved]),
+  );
 
   const handleItemPress = useCallback(
     (file: StatusFile) => {
@@ -68,6 +87,7 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
           title="No Saved Statuses Yet"
           subtitle="Statuses you save will appear here. Tap a status and press the save button to get started."
         />
+        <AdBanner />
       </View>
     );
   }
@@ -83,6 +103,7 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
         refreshing={loading}
         onRefresh={loadSaved}
       />
+      <AdBanner />
     </View>
   );
 };

@@ -35,4 +35,5 @@ export interface AdConfig {
   bannerId: string;
   interstitialId: string;
   rewardedId: string;
+  appOpenId: string;
 }

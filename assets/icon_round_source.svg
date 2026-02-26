@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Circular background -->
+  <circle cx="256" cy="256" r="256" fill="#128C7E"/>
+  <circle cx="256" cy="256" r="256" fill="#25D366" opacity="0.7"/>
+
+  <!-- WhatsApp-style chat bubble (subtle) -->
+  <path d="M256 104c-84 0-152 63-152 141 0 25 7 48 19 68L104 384l76-20c19 10.5 42 16.5 65 16.5h0c0 0 0 0 0 0 0 0 11 .5 11 .5 84 0 152-63 152-141S340 104 256 104z" fill="rgba(255,255,255,0.18)"/>
+
+  <!-- Status ring (dashed circle) -->
+  <circle cx="256" cy="248" r="92" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-dasharray="16 6.5" opacity="0.85"/>
+
+  <!-- Download arrow shaft -->
+  <rect x="243" y="204" width="26" height="58" rx="4" fill="#FFFFFF"/>
+  <!-- Download arrow head -->
+  <polygon points="256,298 218,258 227,249 256,278 285,249 294,258" fill="#FFFFFF"/>
+  <!-- Download base line -->
+  <rect x="214" y="304" width="84" height="10" rx="5" fill="#FFFFFF"/>
+</svg>
