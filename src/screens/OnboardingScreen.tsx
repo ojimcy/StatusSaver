@@ -29,7 +29,7 @@ const STEPS: StepConfig[] = [
   {
     id: 'welcome',
     illustration: '\u{1F4F1}',
-    title: 'Welcome to Status Saver',
+    title: 'Welcome to StatusVault',
     description:
       'Save and share WhatsApp statuses before they disappear. Your privacy is our priority - everything stays on your device.',
     buttonText: 'Get Started',

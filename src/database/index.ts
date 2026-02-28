@@ -3,7 +3,7 @@ import {CREATE_MESSAGES_TABLE, CREATE_INDEXES} from './migrations';
 
 SQLite.enablePromise(true);
 
-const DATABASE_NAME = 'statussaver.db';
+const DATABASE_NAME = 'statusvault.db';
 
 let dbInstance: SQLiteDatabase | null = null;
 

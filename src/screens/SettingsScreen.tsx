@@ -79,7 +79,7 @@ const SettingsScreen: React.FC = () => {
   }, []);
 
   const handlePrivacyPolicy = useCallback(() => {
-    Linking.openURL('https://example.com/privacy');
+    Linking.openURL('https://ojimcy.github.io/statusvault-legal/privacy-policy.html');
   }, []);
 
   const renderSectionHeader = (title: string) => (

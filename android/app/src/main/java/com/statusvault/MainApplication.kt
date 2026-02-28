@@ -1,4 +1,4 @@
-package com.statussaver
+package com.statusvault
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -11,7 +11,7 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.soloader.SoLoader
-import com.statussaver.modules.NativeModulesPackage
+import com.statusvault.modules.NativeModulesPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -19,7 +19,7 @@ class MainApplication : Application(), ReactApplication {
       object : DefaultReactNativeHost(this) {
         override fun getPackages(): List<ReactPackage> =
             PackageList(this).packages.apply {
-              // Custom native modules for StatusSaver
+              // Custom native modules for StatusVault
               add(NativeModulesPackage())
             }
 

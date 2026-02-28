@@ -1,4 +1,4 @@
-package com.statussaver.modules;
+package com.statusvault.modules;
 
 import android.content.pm.PackageManager;
 import android.os.Build;

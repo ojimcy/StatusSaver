@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 
 class ShareViewController: SLComposeServiceViewController {
 
-    let appGroupId = "group.com.statussaver.shared"
+    let appGroupId = "group.com.statusvault.shared"
 
     override func isContentValid() -> Bool {
         return true

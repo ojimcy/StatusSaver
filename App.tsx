@@ -52,7 +52,7 @@ function ImagesStack() {
         name="ImagesHome"
         component={HomeScreen}
         options={{
-          title: 'Status Saver',
+          title: 'StatusVault',
           headerRight: () => <VariantSelector />,
         }}
       />

@@ -1,4 +1,4 @@
-package com.statussaver.modules;
+package com.statusvault.modules;
 
 import android.app.Notification;
 import android.graphics.Bitmap;

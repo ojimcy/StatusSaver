@@ -15,12 +15,12 @@ export const WHATSAPP_STATUS_PATHS = [
 export const SAF_WHATSAPP_BASE_URI =
   'content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia%2F.Statuses';
 
-// AdMob test unit IDs
+// AdMob ad unit IDs
 const ANDROID_AD_IDS: AdConfig = {
-  bannerId: 'ca-app-pub-3940256099942544/6300978111',
-  interstitialId: 'ca-app-pub-3940256099942544/1033173712',
-  rewardedId: 'ca-app-pub-3940256099942544/5224354917',
-  appOpenId: 'ca-app-pub-3940256099942544/9257395921',
+  bannerId: 'ca-app-pub-7465595839328435/9019864334',
+  interstitialId: 'ca-app-pub-7465595839328435/6393700992',
+  rewardedId: 'ca-app-pub-7465595839328435/4070314626',
+  appOpenId: 'ca-app-pub-7465595839328435/2701392630',
 };
 
 const IOS_AD_IDS: AdConfig = {

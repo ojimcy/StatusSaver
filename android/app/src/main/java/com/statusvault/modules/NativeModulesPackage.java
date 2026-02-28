@@ -1,4 +1,4 @@
-package com.statussaver.modules;
+package com.statusvault.modules;
 
 import androidx.annotation.NonNull;
 
@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * React Native package that registers all custom native modules for the StatusSaver app.
+ * React Native package that registers all custom native modules for the StatusVault app.
  *
  * Registered modules:
  * - StatusAccessModule: file access for WhatsApp statuses

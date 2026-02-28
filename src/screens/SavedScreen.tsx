@@ -24,7 +24,7 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
       let result = await CameraRoll.getPhotos({
         first: 100,
         assetType: 'All',
-        groupName: 'StatusSaver',
+        groupName: 'StatusVault',
       });
 
       // Fallback: some devices use different album naming
@@ -32,7 +32,7 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
         result = await CameraRoll.getPhotos({
           first: 100,
           assetType: 'All',
-          groupName: 'Status Saver',
+          groupName: 'StatusVault',
         });
       }
 

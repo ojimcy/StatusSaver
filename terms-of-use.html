@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Use - StatusVault</title>
+    <style>
+        :root {
+            --primary: #1a6dd4;
+            --primary-dark: #0f4a8f;
+            --primary-light: #e8f1fc;
+            --accent: #2b88e6;
+            --heading: #1b2a4a;
+            --text: #3a4660;
+            --text-light: #64748b;
+            --border: #d4e2f3;
+            --bg: #f7faff;
+            --white: #ffffff;
+            --warning-bg: #fef9ec;
+            --warning-border: #f0d76e;
+            --info-bg: #eef6ff;
+            --info-border: #93c5fd;
+            --section-radius: 12px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        /* ---- Header ---- */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--accent) 100%);
+            color: var(--white);
+            padding: 3rem 1.5rem 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: var(--bg);
+            border-radius: 40px 40px 0 0;
+        }
+
+        .page-header .app-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            letter-spacing: 0.02em;
+        }
+
+        .page-header h1 {
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header .subtitle {
+            font-size: 1.05rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .effective-date {
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* ---- Main container ---- */
+        .container {
+            max-width: 820px;
+            margin: -0.5rem auto 3rem;
+            padding: 0 1.25rem;
+        }
+
+        /* ---- Intro banner ---- */
+        .intro-banner {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--section-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 4px rgba(26,109,212,0.06);
+        }
+
+        .intro-banner p {
+            font-size: 0.97rem;
+            color: var(--text-light);
+        }
+
+        .intro-banner p + p {
+            margin-top: 0.75rem;
+        }
+
+        /* ---- Table of Contents ---- */
+        .toc {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--section-radius);
+            padding: 1.75rem 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 1px 4px rgba(26,109,212,0.06);
+        }
+
+        .toc h2 {
+            font-size: 1.15rem;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .toc ol {
+            list-style: none;
+            counter-reset: toc-counter;
+            padding: 0;
+        }
+
+        .toc ol li {
+            counter-increment: toc-counter;
+            margin-bottom: 0.35rem;
+        }
+
+        .toc ol li a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+            padding: 0.3rem 0;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .toc ol li a::before {
+            content: counter(toc-counter, decimal-leading-zero);
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--accent);
+            min-width: 1.6rem;
+        }
+
+        .toc ol li a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* ---- Sections ---- */
+        .section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--section-radius);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 4px rgba(26,109,212,0.06);
+            scroll-margin-top: 1.5rem;
+        }
+
+        .section-number {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.78rem;
+            padding: 0.2rem 0.65rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.03em;
+        }
+
+        .section h2 {
+            font-size: 1.3rem;
+            color: var(--heading);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.35;
+        }
+
+        .section h3 {
+            font-size: 1.05rem;
+            color: var(--heading);
+            font-weight: 600;
+            margin: 1.4rem 0 0.6rem;
+        }
+
+        .section p {
+            margin-bottom: 0.85rem;
+        }
+
+        .section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .section ul, .section ol {
+            padding-left: 1.4rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .section ul li, .section ol li {
+            margin-bottom: 0.4rem;
+        }
+
+        /* ---- Callout boxes ---- */
+        .callout {
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+
+        .callout-warning {
+            background: var(--warning-bg);
+            border-left: 4px solid var(--warning-border);
+        }
+
+        .callout-info {
+            background: var(--info-bg);
+            border-left: 4px solid var(--info-border);
+        }
+
+        .callout-title {
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .callout-warning .callout-title {
+            color: #92750e;
+        }
+
+        .callout-info .callout-title {
+            color: var(--primary);
+        }
+
+        /* ---- Links ---- */
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* ---- Strong emphasis ---- */
+        strong {
+            color: var(--heading);
+            font-weight: 600;
+        }
+
+        /* ---- Back to top ---- */
+        .back-top {
+            text-align: right;
+            margin-top: 0.75rem;
+        }
+
+        .back-top a {
+            font-size: 0.82rem;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .back-top a:hover {
+            color: var(--primary);
+        }
+
+        /* ---- Footer ---- */
+        .page-footer {
+            text-align: center;
+            padding: 2rem 1.5rem 3rem;
+            color: var(--text-light);
+            font-size: 0.88rem;
+            border-top: 1px solid var(--border);
+            margin-top: 1rem;
+        }
+
+        .page-footer a {
+            color: var(--primary);
+        }
+
+        .page-footer .footer-links {
+            margin-top: 0.5rem;
+        }
+
+        .page-footer .footer-links a {
+            margin: 0 0.5rem;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 640px) {
+            .page-header {
+                padding: 2.25rem 1.25rem 2rem;
+            }
+
+            .container {
+                padding: 0 0.75rem;
+            }
+
+            .section {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .toc {
+                padding: 1.25rem 1.5rem;
+            }
+        }
+
+        /* ---- Print ---- */
+        @media print {
+            .page-header {
+                background: none;
+                color: #000;
+                padding: 1rem 0;
+            }
+
+            .page-header::after {
+                display: none;
+            }
+
+            body {
+                background: #fff;
+                font-size: 12pt;
+            }
+
+            .section, .toc, .intro-banner {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                break-inside: avoid;
+            }
+
+            .back-top {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="page-header" id="top">
+    <div class="app-badge">StatusVault</div>
+    <h1>Terms of Use</h1>
+    <p class="subtitle">Please read these terms carefully before using the application.</p>
+    <p class="effective-date">Effective Date: February 27, 2026</p>
+</header>
+
+<!-- Main Content -->
+<main class="container">
+
+    <!-- Intro -->
+    <div class="intro-banner">
+        <p>These Terms of Use ("<strong>Terms</strong>") govern your access to and use of the StatusVault mobile application ("<strong>App</strong>"), identified by the package name <code>com.statusvault</code>, available on Android and iOS platforms. The App is developed and maintained by <strong>Rain Protocol Limited</strong> ("<strong>Developer</strong>", "<strong>we</strong>", "<strong>us</strong>", or "<strong>our</strong>").</p>
+        <p>By downloading, installing, or using the App, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree, you must discontinue use of the App immediately.</p>
+    </div>
+
+    <!-- Table of Contents -->
+    <nav class="toc" aria-label="Table of Contents">
+        <h2>Table of Contents</h2>
+        <ol>
+            <li><a href="#acceptance">Acceptance of Terms</a></li>
+            <li><a href="#description">Description of Service</a></li>
+            <li><a href="#responsibilities">User Responsibilities</a></li>
+            <li><a href="#ip">Intellectual Property</a></li>
+            <li><a href="#whatsapp">WhatsApp Disclaimer</a></li>
+            <li><a href="#notification-access">Notification Access (Android)</a></li>
+            <li><a href="#advertising">Advertising</a></li>
+            <li><a href="#privacy">Privacy</a></li>
+            <li><a href="#content-copyright">User Content &amp; Copyright</a></li>
+            <li><a href="#prohibited">Prohibited Uses</a></li>
+            <li><a href="#warranties">Disclaimer of Warranties</a></li>
+            <li><a href="#liability">Limitation of Liability</a></li>
+            <li><a href="#termination">Termination</a></li>
+            <li><a href="#changes">Changes to Terms</a></li>
+            <li><a href="#governing-law">Governing Law</a></li>
+            <li><a href="#contact">Contact Information</a></li>
+        </ol>
+    </nav>
+
+    <!-- 1. Acceptance of Terms -->
+    <section class="section" id="acceptance">
+        <span class="section-number">Section 01</span>
+        <h2>Acceptance of Terms</h2>
+        <p>By downloading, installing, accessing, or using the StatusVault application, you agree to be legally bound by these Terms of Use and all applicable laws and regulations. These Terms constitute a binding legal agreement between you and the Developer.</p>
+        <p>If you are using the App on behalf of an organization, you represent and warrant that you have the authority to bind that organization to these Terms, and the term "you" will refer to both you individually and the organization.</p>
+        <p>Your continued use of the App following the posting of any changes to these Terms constitutes acceptance of those changes. We encourage you to review these Terms periodically.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 2. Description of Service -->
+    <section class="section" id="description">
+        <span class="section-number">Section 02</span>
+        <h2>Description of Service</h2>
+        <p>StatusVault is a free, ad-supported mobile application built with React Native for Android and iOS devices. The App provides the following core features:</p>
+        <ul>
+            <li><strong>Status Saving:</strong> Browse and save WhatsApp status updates, including images and videos, to your device's local storage.</li>
+            <li><strong>Multi-Variant Support:</strong> Compatible with both WhatsApp Messenger and WhatsApp Business.</li>
+            <li><strong>Deleted Message Recovery (Android Only):</strong> Recover deleted WhatsApp messages by utilizing Android's notification listener service to capture message content before it is removed.</li>
+            <li><strong>Favorites System:</strong> Organize saved content by marking items as favorites for quick access.</li>
+        </ul>
+        <div class="callout callout-info">
+            <div class="callout-title">Local-Only Data</div>
+            <p>All data processed and saved by the App is stored exclusively on your device. StatusVault does not transmit, upload, or sync your data to any cloud service, remote server, or third-party platform. There are no user accounts or authentication mechanisms.</p>
+        </div>
+        <p>The App is provided free of charge and is monetized through in-app advertising. Feature availability may vary between Android and iOS versions.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 3. User Responsibilities -->
+    <section class="section" id="responsibilities">
+        <span class="section-number">Section 03</span>
+        <h2>User Responsibilities</h2>
+        <p>As a user of StatusVault, you agree to the following responsibilities:</p>
+        <ul>
+            <li><strong>Lawful Use:</strong> You will use the App only for lawful purposes and in compliance with all applicable local, national, and international laws and regulations.</li>
+            <li><strong>Content Rights:</strong> You must ensure that you have the proper rights, permissions, or legal basis to save, store, or share any content obtained through the App, including statuses created by other users.</li>
+            <li><strong>WhatsApp Compliance:</strong> You acknowledge that your use of the App must comply with WhatsApp's Terms of Service and Community Guidelines. You are solely responsible for any consequences arising from a violation of WhatsApp's policies.</li>
+            <li><strong>Respect for Others:</strong> You will respect the privacy and intellectual property rights of other users whose content you may access through the App.</li>
+            <li><strong>Device Security:</strong> You are responsible for maintaining the security of your device and any content stored on it through the App.</li>
+            <li><strong>Accurate Permissions:</strong> You will grant the App only the permissions necessary for its intended functionality and understand the purpose of each permission requested.</li>
+        </ul>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 4. Intellectual Property -->
+    <section class="section" id="ip">
+        <span class="section-number">Section 04</span>
+        <h2>Intellectual Property</h2>
+
+        <h3>Application Ownership</h3>
+        <p>The StatusVault application, including but not limited to its source code, object code, design, layout, user interface, graphics, icons, and all related documentation, is the exclusive intellectual property of the Developer and is protected by copyright, trademark, and other intellectual property laws.</p>
+
+        <h3>Saved Content Ownership</h3>
+        <p>Content saved through the App (such as WhatsApp statuses, images, and videos) remains the intellectual property of its original creator or rights holder. The App does not claim ownership over any user-generated or third-party content that is saved, viewed, or accessed through its features.</p>
+
+        <h3>License to Use</h3>
+        <p>Subject to your compliance with these Terms, the Developer grants you a limited, non-exclusive, non-transferable, revocable license to download, install, and use the App on your personal device solely for its intended purpose. This license does not include the right to:</p>
+        <ul>
+            <li>Modify, adapt, or create derivative works of the App.</li>
+            <li>Sublicense, sell, resell, or distribute the App or any portion thereof.</li>
+            <li>Use the App for any commercial purpose beyond personal use.</li>
+        </ul>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 5. WhatsApp Disclaimer -->
+    <section class="section" id="whatsapp">
+        <span class="section-number">Section 05</span>
+        <h2>WhatsApp Disclaimer</h2>
+        <div class="callout callout-warning">
+            <div class="callout-title">Important Disclaimer</div>
+            <p>StatusVault is <strong>not</strong> affiliated with, endorsed by, sponsored by, or in any way officially connected to WhatsApp Inc., WhatsApp LLC, Meta Platforms, Inc., or any of their subsidiaries or affiliates.</p>
+        </div>
+        <p>The names "WhatsApp", "WhatsApp Business", and "Meta" are registered trademarks of their respective owners. Any reference to these names within the App or this document is made solely for the purpose of identifying the platforms with which the App is designed to be compatible.</p>
+        <p>The Developer makes no representations regarding WhatsApp's approval of, or association with, this App. WhatsApp's features, availability, and policies may change at any time without notice, and such changes may affect the functionality of StatusVault. The Developer is not responsible for any limitations or disruptions caused by changes to WhatsApp's platform.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 6. Notification Access -->
+    <section class="section" id="notification-access">
+        <span class="section-number">Section 06</span>
+        <h2>Notification Access (Android)</h2>
+        <p>The deleted message recovery feature, available exclusively on Android, requires the <strong>Notification Listener Service</strong> permission. This section explains how this permission is used.</p>
+
+        <h3>What This Permission Does</h3>
+        <p>When enabled, the App receives a copy of notifications posted to your device's notification shade. This allows the App to capture the text content of incoming WhatsApp messages at the moment they appear as notifications, before they can be deleted by the sender.</p>
+
+        <h3>What Data Is Captured</h3>
+        <ul>
+            <li>The sender's name or contact identifier as displayed in the notification.</li>
+            <li>The text content of the message as it appears in the notification.</li>
+            <li>The timestamp of when the notification was received.</li>
+        </ul>
+
+        <h3>What Data Is NOT Captured</h3>
+        <ul>
+            <li>Media attachments (images, videos, voice notes, documents) are not captured through notifications.</li>
+            <li>Notifications from apps other than WhatsApp and WhatsApp Business are ignored and discarded.</li>
+            <li>End-to-end encrypted message content beyond what is displayed in notifications is not accessed.</li>
+        </ul>
+
+        <h3>How Data Is Handled</h3>
+        <ul>
+            <li>All captured notification data is stored <strong>locally on your device only</strong>.</li>
+            <li>No captured data is transmitted to any external server, cloud service, or third party.</li>
+            <li>You may delete captured messages at any time from within the App.</li>
+            <li>Uninstalling the App will remove all locally stored data.</li>
+        </ul>
+
+        <div class="callout callout-info">
+            <div class="callout-title">Your Control</div>
+            <p>Notification access is entirely optional. The App's other features (status saving, favorites) function independently without this permission. You may revoke notification access at any time through your device's system settings.</p>
+        </div>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 7. Advertising -->
+    <section class="section" id="advertising">
+        <span class="section-number">Section 07</span>
+        <h2>Advertising</h2>
+        <p>StatusVault is a free application that is monetized through in-app advertising. Advertisements are served by <strong>Google AdMob</strong> (a service provided by Google LLC) and may appear in the following formats:</p>
+        <ul>
+            <li><strong>Banner Ads:</strong> Small advertisements displayed at the top or bottom of the screen during regular use.</li>
+            <li><strong>Interstitial Ads:</strong> Full-screen advertisements that may appear at natural transition points within the App.</li>
+            <li><strong>Rewarded Ads:</strong> Optional full-screen advertisements that you may choose to view in exchange for access to certain features or content.</li>
+            <li><strong>App Open Ads:</strong> Advertisements displayed when the App is launched or brought to the foreground.</li>
+        </ul>
+
+        <h3>Third-Party Ad Policies</h3>
+        <p>By using the App, you acknowledge and agree that:</p>
+        <ul>
+            <li>Google AdMob may collect certain data in accordance with <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a> to serve personalized or contextual advertisements.</li>
+            <li>You may be able to manage your ad preferences through your device settings or Google's ad settings.</li>
+            <li>The Developer does not control the content of third-party advertisements and is not responsible for the products, services, or claims made in those advertisements.</li>
+            <li>Clicking on an advertisement may redirect you to a third-party website or application, which is governed by its own terms and privacy practices.</li>
+        </ul>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 8. Privacy -->
+    <section class="section" id="privacy">
+        <span class="section-number">Section 08</span>
+        <h2>Privacy</h2>
+        <p>Your privacy is important to us. The collection, use, and handling of your personal information is governed by our separate <a href="privacy-policy.html"><strong>Privacy Policy</strong></a>, which is incorporated into these Terms by reference.</p>
+        <p>By using the App, you consent to the practices described in our Privacy Policy. Key privacy principles of StatusVault include:</p>
+        <ul>
+            <li>All user data is stored locally on your device.</li>
+            <li>No personal data is transmitted to our servers (we do not operate data-collection servers).</li>
+            <li>No user accounts or authentication are required to use the App.</li>
+            <li>Third-party advertising services may collect data as described in the Advertising section above and in our Privacy Policy.</li>
+        </ul>
+        <p>We encourage you to read the <a href="privacy-policy.html">Privacy Policy</a> in full to understand how your data is handled.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 9. User Content & Copyright -->
+    <section class="section" id="content-copyright">
+        <span class="section-number">Section 09</span>
+        <h2>User Content &amp; Copyright</h2>
+
+        <h3>Respect for Copyright</h3>
+        <p>StatusVault is designed as a utility tool and does not encourage, promote, or condone copyright infringement in any form. The App provides functionality to save publicly viewable status updates; however, the responsibility for lawful use rests entirely with you.</p>
+
+        <h3>Your Obligations</h3>
+        <p>When using the App to save, store, or share content, you represent and warrant that:</p>
+        <ul>
+            <li>You have the legal right, license, or permission from the content creator to save and use their content, or that your use qualifies under applicable fair use or fair dealing exceptions.</li>
+            <li>Your use of saved content does not infringe upon the copyright, trademark, privacy, publicity, or other intellectual property or personal rights of any third party.</li>
+            <li>You will not use the App to systematically download, archive, or redistribute content created by others without their explicit consent.</li>
+        </ul>
+
+        <h3>Copyright Complaints</h3>
+        <p>If you are a content creator and believe that StatusVault is being used to infringe upon your copyrighted works, please contact us at the address provided in the Contact Information section. We take copyright concerns seriously and will respond to valid complaints in a timely manner.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 10. Prohibited Uses -->
+    <section class="section" id="prohibited">
+        <span class="section-number">Section 10</span>
+        <h2>Prohibited Uses</h2>
+        <p>You agree not to use the App in any manner that:</p>
+        <ul>
+            <li>Violates any applicable local, national, or international law or regulation.</li>
+            <li>Infringes upon or violates the intellectual property rights, privacy rights, or any other rights of third parties.</li>
+            <li>Harasses, abuses, stalks, threatens, intimidates, or otherwise harms any individual.</li>
+            <li>Involves saving or distributing content for the purpose of blackmail, extortion, defamation, or any other malicious activity.</li>
+            <li>Attempts to reverse engineer, decompile, disassemble, or otherwise derive the source code of the App.</li>
+            <li>Attempts to circumvent, disable, or interfere with any security features or technical limitations of the App.</li>
+            <li>Introduces malware, viruses, or any other harmful code through or in connection with the App.</li>
+            <li>Uses the App in any automated or systematic manner, including but not limited to scraping, data mining, or bot-driven operations.</li>
+            <li>Removes, alters, or obscures any proprietary notices, labels, or markings on the App.</li>
+            <li>Uses the App to collect or harvest personal information about other users without their consent.</li>
+        </ul>
+        <p>Engaging in any of the prohibited activities listed above may result in the termination of your license to use the App and may expose you to civil or criminal liability.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 11. Disclaimer of Warranties -->
+    <section class="section" id="warranties">
+        <span class="section-number">Section 11</span>
+        <h2>Disclaimer of Warranties</h2>
+        <div class="callout callout-warning">
+            <div class="callout-title">Legal Notice</div>
+            <p>The following disclaimer is provided in accordance with applicable consumer protection laws. Your statutory rights are not affected.</p>
+        </div>
+        <p>The App is provided on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis, without warranties of any kind, whether express, implied, or statutory. To the fullest extent permitted by applicable law, the Developer expressly disclaims all warranties, including but not limited to:</p>
+        <ul>
+            <li><strong>Implied warranties</strong> of merchantability, fitness for a particular purpose, and non-infringement.</li>
+            <li><strong>Availability:</strong> The Developer does not warrant that the App will be uninterrupted, timely, secure, or error-free.</li>
+            <li><strong>Accuracy:</strong> The Developer does not warrant that the results obtained from the use of the App will be accurate, reliable, or complete.</li>
+            <li><strong>Compatibility:</strong> The Developer does not warrant that the App will be compatible with all devices, operating system versions, or third-party applications (including future versions of WhatsApp).</li>
+            <li><strong>Data Integrity:</strong> The Developer does not guarantee the successful saving, recovery, or preservation of any content or data through the App.</li>
+        </ul>
+        <p>You acknowledge and agree that your use of the App is at your sole risk.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 12. Limitation of Liability -->
+    <section class="section" id="liability">
+        <span class="section-number">Section 12</span>
+        <h2>Limitation of Liability</h2>
+        <p>To the maximum extent permitted by applicable law, in no event shall the Developer, its affiliates, officers, directors, employees, agents, or licensors be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+        <ul>
+            <li>Loss of data, content, or information stored on or through the App.</li>
+            <li>Loss of privacy or unauthorized access to your saved content.</li>
+            <li>Damages arising from your misuse of the App or content obtained through it.</li>
+            <li>Damages resulting from the inability to recover deleted messages or save statuses.</li>
+            <li>Damages arising from third-party advertisements displayed within the App.</li>
+            <li>Any action taken against you by WhatsApp or Meta Platforms as a result of your use of the App.</li>
+            <li>Damages resulting from any unauthorized access to or alteration of your device or data.</li>
+        </ul>
+        <p>This limitation applies regardless of the legal theory under which liability is asserted, whether in contract, tort (including negligence), strict liability, or otherwise, and even if the Developer has been advised of the possibility of such damages.</p>
+        <p>In jurisdictions that do not allow the exclusion or limitation of certain damages, the Developer's liability shall be limited to the maximum extent permitted by law.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 13. Termination -->
+    <section class="section" id="termination">
+        <span class="section-number">Section 13</span>
+        <h2>Termination</h2>
+
+        <h3>Termination by the Developer</h3>
+        <p>The Developer reserves the right to terminate or suspend your access to the App, without prior notice or liability, for any reason, including but not limited to:</p>
+        <ul>
+            <li>Breach of any provision of these Terms.</li>
+            <li>Engaging in any prohibited use as described in Section 10.</li>
+            <li>Conduct that the Developer reasonably believes is harmful to other users, third parties, or the integrity of the App.</li>
+        </ul>
+
+        <h3>Termination by You</h3>
+        <p>You may terminate your use of the App at any time by uninstalling it from your device. Upon uninstallation, all locally stored data, including saved statuses, recovered messages, and favorites, will be permanently deleted.</p>
+
+        <h3>Survival</h3>
+        <p>The following sections shall survive any termination of these Terms: Intellectual Property, Disclaimer of Warranties, Limitation of Liability, User Content &amp; Copyright, and Governing Law.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 14. Changes to Terms -->
+    <section class="section" id="changes">
+        <span class="section-number">Section 14</span>
+        <h2>Changes to Terms</h2>
+        <p>The Developer reserves the right to modify, amend, or replace these Terms at any time and at its sole discretion. When changes are made:</p>
+        <ul>
+            <li>The updated Terms will be made available within the App or at the same URL where these Terms are published.</li>
+            <li>The "Effective Date" at the top of this document will be updated to reflect the date of the most recent revision.</li>
+            <li>For material changes, the Developer will make reasonable efforts to notify you through the App (such as an in-app notice) prior to the changes taking effect.</li>
+        </ul>
+        <p>Your continued use of the App after the revised Terms have been posted constitutes your acceptance of, and agreement to be bound by, the updated Terms. If you do not agree with the revised Terms, you must discontinue your use of the App and uninstall it from your device.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 15. Governing Law -->
+    <section class="section" id="governing-law">
+        <span class="section-number">Section 15</span>
+        <h2>Governing Law</h2>
+        <p>These Terms shall be governed by and construed in accordance with the laws applicable in the jurisdiction where the Developer is established, without regard to its conflict of law provisions.</p>
+        <p>Any disputes arising out of or in connection with these Terms or the use of the App shall, to the extent possible, be resolved amicably through good-faith negotiation between the parties. If a resolution cannot be reached, the dispute shall be submitted to the competent courts of the Developer's jurisdiction.</p>
+        <p>If any provision of these Terms is found to be unlawful, void, or unenforceable by a court of competent jurisdiction, that provision shall be deemed severable from the remaining Terms and shall not affect the validity or enforceability of the remaining provisions.</p>
+        <p>These Terms are intended to be applicable internationally. Users in specific jurisdictions may have additional rights under local consumer protection laws, and nothing in these Terms is intended to limit those statutory rights.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+    <!-- 16. Contact Information -->
+    <section class="section" id="contact">
+        <span class="section-number">Section 16</span>
+        <h2>Contact Information</h2>
+        <p>If you have any questions, concerns, or requests regarding these Terms of Use, or if you need to report a copyright concern or a violation of these Terms, please contact us at:</p>
+        <p style="margin-top: 0.5rem;">
+            <strong>Developer:</strong> Rain Protocol Limited<br>
+            <strong>Email:</strong> <a href="mailto:contact@statusvault.app">contact@statusvault.app</a>
+        </p>
+        <p>We will make reasonable efforts to respond to all inquiries within a timely manner.</p>
+        <div class="back-top"><a href="#top">Back to top</a></div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="page-footer">
+    <p>&copy; 2026 Rain Protocol Limited. All rights reserved.</p>
+    <p class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a> &middot;
+        <a href="terms-of-use.html">Terms of Use</a>
+    </p>
+</footer>
+
+</body>
+</html>

@@ -8,3 +8,26 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# React Native
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.hermes.** { *; }
+-keep class com.facebook.jni.** { *; }
+-dontwarn com.facebook.react.**
+
+# App native modules
+-keep class com.statusvault.modules.** { *; }
+-keep class com.statusvault.MainApplication { *; }
+-keep class com.statusvault.MainActivity { *; }
+
+# NotificationListenerService must not be obfuscated
+-keep class com.statusvault.modules.WhatsAppNotificationService { *; }
+
+# Google Mobile Ads
+-keep class com.google.android.gms.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**
+
+# Keep annotations
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes Exceptions

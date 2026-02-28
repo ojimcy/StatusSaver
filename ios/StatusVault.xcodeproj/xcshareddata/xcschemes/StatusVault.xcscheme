@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "StatusSaver.app"
-               BlueprintName = "StatusSaver"
-               ReferencedContainer = "container:StatusSaver.xcodeproj">
+               BuildableName = "StatusVault.app"
+               BlueprintName = "StatusVault"
+               ReferencedContainer = "container:StatusVault.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "StatusSaverTests.xctest"
-               BlueprintName = "StatusSaverTests"
-               ReferencedContainer = "container:StatusSaver.xcodeproj">
+               BuildableName = "StatusVaultTests.xctest"
+               BlueprintName = "StatusVaultTests"
+               ReferencedContainer = "container:StatusVault.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "StatusSaver.app"
-            BlueprintName = "StatusSaver"
-            ReferencedContainer = "container:StatusSaver.xcodeproj">
+            BuildableName = "StatusVault.app"
+            BlueprintName = "StatusVault"
+            ReferencedContainer = "container:StatusVault.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "StatusSaver.app"
-            BlueprintName = "StatusSaver"
-            ReferencedContainer = "container:StatusSaver.xcodeproj">
+            BuildableName = "StatusVault.app"
+            BlueprintName = "StatusVault"
+            ReferencedContainer = "container:StatusVault.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

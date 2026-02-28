@@ -40,7 +40,7 @@ export async function saveToGallery(file: StatusFile): Promise<boolean> {
       uriToSave = `file://${tempPath}`;
       const savedUri = await CameraRoll.save(uriToSave, {
         type,
-        album: 'StatusSaver',
+        album: 'StatusVault',
       });
       // Trigger media scan so it shows up in gallery queries immediately
       if (savedUri) {
@@ -51,7 +51,7 @@ export async function saveToGallery(file: StatusFile): Promise<boolean> {
     } else {
       const savedUri = await CameraRoll.save(uriToSave, {
         type,
-        album: 'StatusSaver',
+        album: 'StatusVault',
       });
       if (savedUri) {
         await scanFile(savedUri);

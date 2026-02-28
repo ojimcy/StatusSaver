@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - StatusVault</title>
+  <style>
+    :root {
+      --color-primary: #1a5276;
+      --color-primary-light: #2980b9;
+      --color-accent: #2471a3;
+      --color-bg: #f8fafc;
+      --color-surface: #ffffff;
+      --color-text: #2c3e50;
+      --color-text-light: #5d6d7e;
+      --color-border: #d5dbdb;
+      --color-highlight: #eaf2f8;
+      --color-warning-bg: #fef9e7;
+      --color-warning-border: #f9e79f;
+      --color-info-bg: #eaf2f8;
+      --color-info-border: #aed6f1;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 8px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      color: #ffffff;
+      padding: 3rem 1.5rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #3498db, #1abc9c, #3498db);
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-header .subtitle {
+      font-size: 1.05rem;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    .effective-date {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.35rem 1rem;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      backdrop-filter: blur(4px);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .notice-box {
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-size: 0.925rem;
+      line-height: 1.6;
+    }
+
+    .notice-box.info {
+      background: var(--color-info-bg);
+      border-left: 4px solid var(--color-accent);
+    }
+
+    .notice-box.warning {
+      background: var(--color-warning-bg);
+      border-left: 4px solid #f0b429;
+    }
+
+    .notice-box strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--color-primary);
+    }
+
+    /* Table of Contents */
+    .toc {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toc h2 {
+      font-size: 1.1rem;
+      color: var(--color-primary);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .toc ol {
+      list-style: none;
+      counter-reset: toc-counter;
+      padding: 0;
+    }
+
+    .toc ol li {
+      counter-increment: toc-counter;
+      margin-bottom: 0.35rem;
+    }
+
+    .toc ol li::before {
+      content: counter(toc-counter) ".";
+      color: var(--color-primary-light);
+      font-weight: 600;
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .toc a {
+      color: var(--color-accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+
+    .toc a:hover {
+      color: var(--color-primary);
+      text-decoration: underline;
+    }
+
+    /* Sections */
+    .section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s;
+    }
+
+    .section:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .section h2 {
+      font-size: 1.35rem;
+      color: var(--color-primary);
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 2px solid var(--color-highlight);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .section h3 {
+      font-size: 1.08rem;
+      color: var(--color-primary);
+      margin: 1.25rem 0 0.6rem;
+      font-weight: 600;
+    }
+
+    .section p {
+      margin-bottom: 0.85rem;
+      color: var(--color-text);
+    }
+
+    .section ul, .section ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+      color: var(--color-text);
+    }
+
+    .section li {
+      margin-bottom: 0.4rem;
+    }
+
+    .section li::marker {
+      color: var(--color-primary-light);
+    }
+
+    /* Data table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.925rem;
+    }
+
+    .data-table thead th {
+      background: var(--color-primary);
+      color: #ffffff;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .data-table thead th:first-child {
+      border-radius: var(--radius) 0 0 0;
+    }
+
+    .data-table thead th:last-child {
+      border-radius: 0 var(--radius) 0 0;
+    }
+
+    .data-table tbody td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: top;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+      background: var(--color-highlight);
+    }
+
+    .data-table tbody tr:last-child td:first-child {
+      border-radius: 0 0 0 var(--radius);
+    }
+
+    .data-table tbody tr:last-child td:last-child {
+      border-radius: 0 0 var(--radius) 0;
+    }
+
+    /* Permission badge */
+    .permission-badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      background: var(--color-highlight);
+      border: 1px solid var(--color-info-border);
+      border-radius: 4px;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      color: var(--color-primary);
+      white-space: nowrap;
+    }
+
+    /* Footer */
+    .page-footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      color: var(--color-text-light);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .page-footer a {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    .page-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .page-footer .footer-divider {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      background: var(--color-border);
+      border-radius: 50%;
+      margin: 0 0.75rem;
+      vertical-align: middle;
+    }
+
+    /* Back to top */
+    .back-to-top {
+      display: block;
+      text-align: center;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .back-to-top a {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    .back-to-top a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .page-header {
+        padding: 2rem 1rem 1.75rem;
+      }
+
+      .page-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .container {
+        padding: 1.25rem 1rem 3rem;
+      }
+
+      .section {
+        padding: 1.25rem;
+      }
+
+      .section h2 {
+        font-size: 1.2rem;
+      }
+
+      .toc {
+        padding: 1.25rem;
+      }
+
+      .data-table {
+        font-size: 0.85rem;
+      }
+
+      .data-table thead th,
+      .data-table tbody td {
+        padding: 0.55rem 0.65rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      body {
+        font-size: 15px;
+      }
+
+      .page-header h1 {
+        font-size: 1.4rem;
+      }
+
+      .section {
+        padding: 1rem;
+      }
+
+      .data-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      .page-header {
+        background: none;
+        color: var(--color-text);
+        border-bottom: 2px solid var(--color-primary);
+      }
+
+      .page-header::after {
+        display: none;
+      }
+
+      .section {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+      }
+
+      .effective-date {
+        background: none;
+        border: 1px solid #ccc;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a id="top"></a>
+
+  <header class="page-header">
+    <h1>Privacy Policy</h1>
+    <p class="subtitle">StatusVault &mdash; com.statusvault</p>
+    <span class="effective-date">Effective Date: February 27, 2026</span>
+  </header>
+
+  <main class="container">
+
+    <div class="notice-box info">
+      <strong>Privacy-First Design</strong>
+      StatusVault is designed with your privacy as a core principle. All data generated and saved by this app remains exclusively on your device. We do not operate servers, collect analytics, or transmit your personal data to any external service.
+    </div>
+
+    <div class="notice-box warning">
+      <strong>Disclaimer</strong>
+      StatusVault is an independent application and is not affiliated with, endorsed by, or connected to WhatsApp Inc., Meta Platforms Inc., or any of their subsidiaries. "WhatsApp" is a registered trademark of WhatsApp Inc.
+    </div>
+
+    <!-- Table of Contents -->
+    <nav class="toc" aria-label="Table of Contents">
+      <h2>Table of Contents</h2>
+      <ol>
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#data-collection">Information We Collect</a></li>
+        <li><a href="#local-storage">How Your Data Is Stored</a></li>
+        <li><a href="#permissions">App Permissions Explained</a></li>
+        <li><a href="#notification-listener">Notification Listener Service</a></li>
+        <li><a href="#third-party">Third-Party Services</a></li>
+        <li><a href="#data-retention">Data Retention &amp; Deletion</a></li>
+        <li><a href="#data-security">Data Security</a></li>
+        <li><a href="#gdpr">Your Rights Under GDPR</a></li>
+        <li><a href="#ccpa">Your Rights Under CCPA</a></li>
+        <li><a href="#children">Children's Privacy (COPPA)</a></li>
+        <li><a href="#changes">Changes to This Policy</a></li>
+        <li><a href="#contact">Contact Us</a></li>
+      </ol>
+    </nav>
+
+    <!-- 1. Introduction -->
+    <section class="section" id="introduction">
+      <h2>1. Introduction</h2>
+      <p>
+        Welcome to StatusVault ("the App"), operated by <strong>Rain Protocol Limited</strong> ("we", "our", or "us"). This Privacy Policy explains how the StatusVault mobile application (package name: <strong>com.statusvault</strong>) handles your information when you use our app on Android and iOS devices.
+      </p>
+      <p>
+        StatusVault allows you to save WhatsApp status updates (images and videos), recover deleted WhatsApp messages (Android only), organize saved content with a favorites system, and supports multiple WhatsApp variants (WhatsApp, WhatsApp Business, etc.).
+      </p>
+      <p>
+        By installing and using StatusVault, you agree to the practices described in this Privacy Policy. If you do not agree with any part of this policy, please uninstall the app.
+      </p>
+    </section>
+
+    <!-- 2. Information We Collect -->
+    <section class="section" id="data-collection">
+      <h2>2. Information We Collect</h2>
+      <p>
+        StatusVault is built on an offline-first architecture. <strong>We do not collect, transmit, or store any of your personal data on external servers.</strong> All information generated through your use of the app remains stored locally on your device.
+      </p>
+
+      <h3>2.1 Data You Generate Through App Usage</h3>
+      <p>The following data is created and stored locally on your device when you use the app:</p>
+
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data Type</th>
+              <th>Description</th>
+              <th>Storage Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Saved Statuses</td>
+              <td>WhatsApp status images and videos you choose to save</td>
+              <td>Device gallery / media storage</td>
+            </tr>
+            <tr>
+              <td>Deleted Messages</td>
+              <td>Contact name, message text, group name, timestamp, and thumbnail image (base64-encoded)</td>
+              <td>Local SQLite database</td>
+            </tr>
+            <tr>
+              <td>User Preferences</td>
+              <td>Theme settings, auto-delete configuration, and general app preferences</td>
+              <td>AsyncStorage (device)</td>
+            </tr>
+            <tr>
+              <td>Temporary Files</td>
+              <td>Cached media files generated during content sharing</td>
+              <td>App cache directory</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2.2 Data We Do NOT Collect</h3>
+      <ul>
+        <li>Personal identifiers (name, email address, phone number)</li>
+        <li>Account credentials or authentication tokens</li>
+        <li>Location or GPS data</li>
+        <li>Device identifiers for our own tracking purposes</li>
+        <li>Usage analytics or behavioral telemetry</li>
+        <li>Contacts or address book data</li>
+        <li>Browsing history or search queries</li>
+      </ul>
+    </section>
+
+    <!-- 3. How Your Data Is Stored -->
+    <section class="section" id="local-storage">
+      <h2>3. How Your Data Is Stored</h2>
+      <p>
+        All app-generated data is stored exclusively on your physical device. StatusVault does not use cloud storage, remote databases, or any form of server-side synchronization.
+      </p>
+      <ul>
+        <li><strong>Saved media</strong> (images and videos) are written to your device's gallery or designated media storage folders and are accessible through your default file manager and gallery apps.</li>
+        <li><strong>Deleted message records</strong> are maintained in a local SQLite database within the app's private data directory. This database is not encrypted.</li>
+        <li><strong>User preferences</strong> are persisted through React Native AsyncStorage, which stores key-value pairs in the app's local data partition.</li>
+        <li><strong>Temporary cache files</strong> are held in the app's cache directory and are subject to automatic cleanup by the operating system.</li>
+      </ul>
+      <p>
+        Because data resides solely on your device, it is protected by your device's own security measures (screen lock, encryption, biometrics). If you uninstall the app, all locally stored app data (database, preferences, cache) will be removed by the operating system. Saved media files in your gallery will persist unless you manually delete them.
+      </p>
+    </section>
+
+    <!-- 4. App Permissions Explained -->
+    <section class="section" id="permissions">
+      <h2>4. App Permissions Explained</h2>
+      <p>
+        StatusVault requests only the permissions strictly necessary for its core functionality. Below is a detailed explanation of each permission and why it is needed.
+      </p>
+
+      <h3>4.1 Android Permissions</h3>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Permission</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="permission-badge">INTERNET</span></td>
+              <td>Required exclusively for loading and displaying advertisements through Google AdMob. The app does not use internet access to transmit your personal data.</td>
+            </tr>
+            <tr>
+              <td><span class="permission-badge">READ_EXTERNAL_STORAGE</span></td>
+              <td>Allows the app to read WhatsApp status files from shared storage on devices running Android 12 and below.</td>
+            </tr>
+            <tr>
+              <td><span class="permission-badge">WRITE_EXTERNAL_STORAGE</span></td>
+              <td>Allows the app to save status images and videos to your device gallery on devices running Android 12 and below.</td>
+            </tr>
+            <tr>
+              <td><span class="permission-badge">READ_MEDIA_IMAGES</span></td>
+              <td>Grants access to image files on Android 13 and above, replacing the broader storage permission with a more privacy-focused, scoped alternative.</td>
+            </tr>
+            <tr>
+              <td><span class="permission-badge">READ_MEDIA_VIDEO</span></td>
+              <td>Grants access to video files on Android 13 and above, replacing the broader storage permission with a more privacy-focused, scoped alternative.</td>
+            </tr>
+            <tr>
+              <td><span class="permission-badge">BIND_NOTIFICATION_LISTENER_SERVICE</span></td>
+              <td>Enables the deleted message recovery feature by allowing the app to observe incoming notifications. See <a href="#notification-listener">Section 5</a> for detailed information.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.2 iOS Permissions</h3>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Permission</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="permission-badge">Photo Library</span></td>
+              <td>Required to save status images and videos to your device's photo library and to access previously saved media.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        All permissions are requested at runtime with clear explanations. You may revoke any permission at any time through your device's Settings app. Revoking a permission may disable the associated feature but will not affect other parts of the app.
+      </p>
+    </section>
+
+    <!-- 5. Notification Listener Service -->
+    <section class="section" id="notification-listener">
+      <h2>5. Notification Listener Service</h2>
+      <p>
+        The deleted message recovery feature on Android uses the system's Notification Listener Service. This section provides full transparency on how this sensitive permission operates.
+      </p>
+
+      <h3>5.1 How It Works</h3>
+      <p>
+        When enabled by you, the notification listener receives callbacks from the Android system each time a notification is posted or removed on your device. StatusVault <strong>exclusively processes notifications originating from WhatsApp applications</strong> (WhatsApp, WhatsApp Business, and supported variants). Notifications from all other apps are immediately discarded and never read, stored, or processed.
+      </p>
+
+      <h3>5.2 What Data Is Captured</h3>
+      <p>When a WhatsApp notification is detected and subsequently removed (indicating a deleted message), the following information is extracted and stored locally:</p>
+      <ul>
+        <li>Contact or sender name</li>
+        <li>Message text content</li>
+        <li>Group name (if applicable)</li>
+        <li>Timestamp of the notification</li>
+        <li>Notification thumbnail image (stored as base64-encoded data)</li>
+      </ul>
+
+      <h3>5.3 Important Safeguards</h3>
+      <ul>
+        <li>This feature is <strong>opt-in only</strong> and requires you to explicitly grant permission in your device's Settings.</li>
+        <li>Non-WhatsApp notifications are never read or stored.</li>
+        <li>All captured data remains in the local SQLite database on your device.</li>
+        <li>No captured message data is transmitted to any external server or third party.</li>
+        <li>You may disable the notification listener at any time through your device's Settings without affecting other app functionality.</li>
+      </ul>
+
+      <div class="notice-box info" style="margin-top: 1rem;">
+        <strong>Availability Note</strong>
+        The notification listener service and deleted message recovery feature are available on Android only. iOS does not provide equivalent system-level notification access to third-party apps.
+      </div>
+    </section>
+
+    <!-- 6. Third-Party Services -->
+    <section class="section" id="third-party">
+      <h2>6. Third-Party Services</h2>
+      <p>
+        StatusVault integrates a single third-party service for monetization purposes. We do not use analytics platforms, crash reporting tools, social media SDKs, or any other third-party data processors.
+      </p>
+
+      <h3>6.1 Google Mobile Ads (AdMob)</h3>
+      <p>
+        The app displays advertisements provided by Google AdMob to support free access to the app. AdMob may collect certain device and interaction data independently to serve and measure advertisements. The ad formats used in the app include:
+      </p>
+      <ul>
+        <li>Banner advertisements</li>
+        <li>Interstitial (full-screen) advertisements</li>
+        <li>Rewarded video advertisements</li>
+        <li>App-open advertisements</li>
+      </ul>
+      <p>
+        Google AdMob operates under its own privacy policy and manages its own compliance with GDPR, CCPA, and other applicable regulations, including the display of consent dialogs where required. The data collected by AdMob is governed by Google's Privacy Policy.
+      </p>
+      <p>
+        For more information on how Google handles data in the context of advertising, please review:
+      </p>
+      <ul>
+        <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a></li>
+        <li><a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">Google Advertising Policies</a></li>
+      </ul>
+
+      <h3>6.2 Services We Do NOT Use</h3>
+      <ul>
+        <li>Firebase or other cloud platforms</li>
+        <li>Analytics or telemetry services</li>
+        <li>Crash reporting or diagnostic tools</li>
+        <li>Social media login or sharing SDKs</li>
+        <li>Push notification services</li>
+        <li>Customer relationship management (CRM) tools</li>
+      </ul>
+    </section>
+
+    <!-- 7. Data Retention & Deletion -->
+    <section class="section" id="data-retention">
+      <h2>7. Data Retention &amp; Deletion</h2>
+      <p>
+        Because all data is stored locally on your device, you have full and direct control over its lifecycle.
+      </p>
+
+      <h3>7.1 Automatic Retention Policies</h3>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data Type</th>
+              <th>Default Retention</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Deleted Messages</td>
+              <td>90 days</td>
+              <td>Automatically purged after the retention period. Duration is configurable by you in app settings.</td>
+            </tr>
+            <tr>
+              <td>Buffered Messages</td>
+              <td>24 hours</td>
+              <td>Temporary message data is cleaned automatically after 24 hours.</td>
+            </tr>
+            <tr>
+              <td>Cache Files</td>
+              <td>Managed by OS</td>
+              <td>Temporary sharing files are stored in the cache directory and may be cleared by the operating system as needed.</td>
+            </tr>
+            <tr>
+              <td>Saved Media</td>
+              <td>Indefinite</td>
+              <td>Saved images and videos persist in your gallery until you manually delete them.</td>
+            </tr>
+            <tr>
+              <td>User Preferences</td>
+              <td>Until app removal</td>
+              <td>Settings persist until the app is uninstalled or data is manually cleared.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>7.2 Manual Data Deletion</h3>
+      <p>You can delete your data at any time through the following methods:</p>
+      <ul>
+        <li><strong>In-app controls:</strong> Use the app's built-in options to clear saved messages, delete individual or all recovered messages, and remove favorites.</li>
+        <li><strong>Clear app data:</strong> Navigate to your device's Settings &gt; Apps &gt; StatusVault &gt; Storage &gt; Clear Data to remove all app data including the database and preferences.</li>
+        <li><strong>Uninstall:</strong> Removing the app will delete all app-specific data (database, preferences, cache). Saved media in your gallery will remain unless you delete it separately.</li>
+      </ul>
+    </section>
+
+    <!-- 8. Data Security -->
+    <section class="section" id="data-security">
+      <h2>8. Data Security</h2>
+      <p>
+        We take reasonable measures to safeguard the data stored by the app, though no method of electronic storage is perfectly secure.
+      </p>
+      <ul>
+        <li><strong>Local-only storage:</strong> By keeping all data on your device, we eliminate the risks associated with server breaches, network interception, and unauthorized remote access.</li>
+        <li><strong>No network transmission:</strong> Your personal data (messages, saved media, preferences) is never transmitted over the internet. The only network activity is loading advertisements through Google AdMob.</li>
+        <li><strong>App sandboxing:</strong> On both Android and iOS, the app's private data directory (containing the SQLite database and preferences) is sandboxed by the operating system, preventing other apps from accessing it without root/jailbreak access.</li>
+      </ul>
+
+      <div class="notice-box warning" style="margin-top: 1rem;">
+        <strong>Transparency Notice</strong>
+        The local SQLite database used to store recovered deleted messages is not encrypted. While the database is protected by OS-level app sandboxing, users with rooted (Android) or jailbroken (iOS) devices should be aware that other apps with elevated privileges could potentially access this data. We recommend keeping your device's operating system up to date and using your device's built-in security features (screen lock, device encryption).
+      </div>
+    </section>
+
+    <!-- 9. GDPR -->
+    <section class="section" id="gdpr">
+      <h2>9. Your Rights Under GDPR</h2>
+      <p>
+        If you are located in the European Economic Area (EEA), the United Kingdom, or Switzerland, you are entitled to certain rights under the General Data Protection Regulation (GDPR) and equivalent legislation.
+      </p>
+      <p>
+        Because StatusVault does not collect or process your personal data on any server, most GDPR rights are inherently satisfied by the app's local-only design:
+      </p>
+      <ul>
+        <li><strong>Right of Access:</strong> All your data is stored on your device and is directly accessible to you at all times through the app interface.</li>
+        <li><strong>Right to Rectification:</strong> You can modify your preferences and manage saved content directly within the app.</li>
+        <li><strong>Right to Erasure:</strong> You can delete any or all data at any time using the in-app controls or by clearing the app's data through your device settings.</li>
+        <li><strong>Right to Data Portability:</strong> Saved media files are stored in standard formats in your device gallery and can be transferred freely. Recovered messages can be viewed and manually copied.</li>
+        <li><strong>Right to Restrict Processing:</strong> You can disable specific features (such as the notification listener) at any time through your device settings.</li>
+        <li><strong>Right to Object:</strong> You may stop using the app at any time by disabling features or uninstalling.</li>
+      </ul>
+      <p>
+        Regarding advertisements: Google AdMob independently manages GDPR consent for personalized advertising. Users in applicable regions will be presented with a consent dialog managed by Google's User Messaging Platform (UMP) upon first launch or as required.
+      </p>
+      <p>
+        For any GDPR-related inquiries, please contact us at the address listed in <a href="#contact">Section 13</a>.
+      </p>
+    </section>
+
+    <!-- 10. CCPA -->
+    <section class="section" id="ccpa">
+      <h2>10. Your Rights Under CCPA</h2>
+      <p>
+        If you are a California resident, the California Consumer Privacy Act (CCPA) grants you specific rights regarding your personal information.
+      </p>
+      <ul>
+        <li><strong>Right to Know:</strong> StatusVault does not collect personal information that is transmitted to or stored on external servers. All data remains on your device as detailed in this policy.</li>
+        <li><strong>Right to Delete:</strong> You have full control to delete all locally stored data at any time through in-app controls or device settings.</li>
+        <li><strong>Right to Opt-Out of Sale:</strong> We do not sell your personal information to third parties. We do not share your personal information for cross-context behavioral advertising. The advertising data collected by Google AdMob is managed by Google under its own privacy framework.</li>
+        <li><strong>Right to Non-Discrimination:</strong> You will not be penalized for exercising your privacy rights. The app provides the same service regardless of your privacy choices.</li>
+      </ul>
+      <p>
+        To exercise any of these rights or for questions, contact us at the address listed in <a href="#contact">Section 13</a>.
+      </p>
+    </section>
+
+    <!-- 11. Children's Privacy -->
+    <section class="section" id="children">
+      <h2>11. Children's Privacy (COPPA)</h2>
+      <p>
+        StatusVault is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13 years of age.
+      </p>
+      <p>
+        Since the app does not collect personal data or require account registration, there is no mechanism through which we could knowingly gather information from minors. However, the app does display advertisements served by Google AdMob, which are configured to comply with applicable child safety regulations.
+      </p>
+      <p>
+        If you are a parent or guardian and believe your child under 13 has been using the app in a way that raises privacy concerns, please contact us at the address provided in <a href="#contact">Section 13</a>, and we will work with you to address your concerns.
+      </p>
+      <p>
+        We encourage parents and guardians to monitor their children's device usage and to review the permissions granted to all installed applications.
+      </p>
+    </section>
+
+    <!-- 12. Changes to This Policy -->
+    <section class="section" id="changes">
+      <h2>12. Changes to This Policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time to reflect changes in the app's functionality, legal requirements, or best practices. When we make changes:
+      </p>
+      <ul>
+        <li>The "Effective Date" at the top of this page will be updated.</li>
+        <li>Material changes will be communicated through an in-app notification or a prominent notice within the app.</li>
+        <li>The updated policy will be made available at the same URL and within the app.</li>
+      </ul>
+      <p>
+        Your continued use of the app after changes take effect constitutes your acceptance of the revised policy. We recommend reviewing this policy periodically.
+      </p>
+    </section>
+
+    <!-- 13. Contact Us -->
+    <section class="section" id="contact">
+      <h2>13. Contact Us</h2>
+      <p>
+        If you have any questions, concerns, or requests regarding this Privacy Policy or the app's data practices, please reach out to us:
+      </p>
+      <ul>
+        <li><strong>Developer:</strong> Rain Protocol Limited</li>
+        <li><strong>Email:</strong> <a href="mailto:contact@statusvault.app">contact@statusvault.app</a></li>
+        <li><strong>Subject Line:</strong> Please include "Privacy Policy Inquiry" in the subject line for faster routing.</li>
+      </ul>
+      <p>
+        We aim to respond to all privacy-related inquiries within 30 days. For requests exercising rights under GDPR or CCPA, we will respond within the timeframes mandated by applicable law.
+      </p>
+    </section>
+
+    <p class="back-to-top"><a href="#top">Back to top</a></p>
+
+  </main>
+
+  <footer class="page-footer">
+    <p>
+      &copy; 2026 Rain Protocol Limited
+      <span class="footer-divider"></span>
+      <a href="mailto:contact@statusvault.app">contact@statusvault.app</a>
+    </p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #85929e;">
+      This policy applies to the StatusVault app (com.statusvault) for Android and iOS.
+      <br>
+      WhatsApp is a registered trademark of WhatsApp Inc. This app is not affiliated with WhatsApp Inc. or Meta Platforms Inc.
+    </p>
+  </footer>
+
+</body>
+</html>
