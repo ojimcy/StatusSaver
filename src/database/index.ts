@@ -75,8 +75,19 @@ async function runMigrations(db: SQLiteDatabase): Promise<void> {
     await db.executeSql('DELETE FROM deleted_messages;');
   }
 
+  if (currentVersion < 9) {
+    // v9: add previous_message_text column for preserving original text during in-place updates
+    try {
+      await db.executeSql(
+        'ALTER TABLE deleted_messages ADD COLUMN previous_message_text TEXT;',
+      );
+    } catch {
+      // Column may already exist if table was freshly created
+    }
+  }
+
   await db.executeSql(
-    "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '8');",
+    "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '9');",
   );
 
   // Create indexes after all migrations (columns must exist first)

@@ -11,7 +11,8 @@ export const CREATE_MESSAGES_TABLE = `
     created_at INTEGER NOT NULL,
     package_name TEXT DEFAULT 'com.whatsapp',
     notification_key TEXT,
-    is_deleted INTEGER DEFAULT 0
+    is_deleted INTEGER DEFAULT 0,
+    previous_message_text TEXT
   );
 `;
 

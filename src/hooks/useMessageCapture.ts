@@ -1,15 +1,19 @@
 import {useEffect, useRef} from 'react';
-import type {EmitterSubscription} from 'react-native';
+import {AppState} from 'react-native';
+import type {AppStateStatus, EmitterSubscription} from 'react-native';
 import {
   startListening,
   startListeningForRemoved,
+  startListeningForDeleted,
   type WhatsAppMessageEvent,
   type WhatsAppMessageRemovedEvent,
+  type WhatsAppMessageDeletedEvent,
 } from '../services/NotificationService';
 import {isNotificationListenerEnabled} from '../services/NotificationService';
 import {
   bufferMessage,
   markDeleted,
+  markDeletedWithRestore,
   storeMessage,
   expireBuffer,
 } from '../services/MessageService';
@@ -30,9 +34,9 @@ const MAX_REMOVALS_PER_CONTACT = 2;
 // A "stale" removal (notification sitting unchanged for a long time) is almost
 // certainly the user opening the chat, not a message deletion.
 // Note: when WhatsApp processes "delete for everyone", it typically updates the
-// notification before removing it, refreshing lastUpdateTime. 15s gives enough
-// room for delayed processing.
-const REMOVAL_RECENCY_THRESHOLD_MS = 15_000;
+// notification before removing it, refreshing lastUpdateTime. 30s gives enough
+// room for delayed processing (increased from 15s for regular WhatsApp).
+const REMOVAL_RECENCY_THRESHOLD_MS = 30_000;
 
 // When we have no tracking data (msSinceLastUpdate = -1, e.g. after service
 // restart), allow a removal through if the notification was posted within
@@ -44,6 +48,36 @@ const DELETION_PATTERNS = [
   /you deleted this message/i,
   /message was deleted/i,
   /this message has been deleted/i,
+  // Spanish
+  /se eliminó este mensaje/i,
+  /eliminaste este mensaje/i,
+  // Portuguese
+  /esta mensagem foi apagada/i,
+  /você apagou essa mensagem/i,
+  // French
+  /ce message a été supprimé/i,
+  /vous avez supprimé ce message/i,
+  // German
+  /diese nachricht wurde gelöscht/i,
+  /du hast diese nachricht gelöscht/i,
+  // Italian
+  /questo messaggio è stato eliminato/i,
+  /hai eliminato questo messaggio/i,
+  // Arabic
+  /تم حذف هذه الرسالة/,
+  /لقد حذفت هذه الرسالة/,
+  // Hindi
+  /यह मैसेज डिलीट किया गया/,
+  /आपने यह मैसेज डिलीट किया/,
+  // Indonesian
+  /pesan ini telah dihapus/i,
+  /anda menghapus pesan ini/i,
+  // Turkish
+  /bu mesaj silindi/i,
+  /bu mesajı sildiniz/i,
+  // Russian
+  /сообщение удалено/i,
+  /вы удалили это сообщение/i,
 ];
 
 function isDeletionText(text: string): boolean {
@@ -53,8 +87,11 @@ function isDeletionText(text: string): boolean {
 export default function useMessageCapture(): void {
   const messageSubRef = useRef<EmitterSubscription | null>(null);
   const removedSubRef = useRef<EmitterSubscription | null>(null);
+  const deletedSubRef = useRef<EmitterSubscription | null>(null);
   const removalQueueRef = useRef<WhatsAppMessageRemovedEvent[]>([]);
   const removalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cleanupTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const listenersActiveRef = useRef(false);
 
   useEffect(() => {
     if (!supportsDeletedMessages) {
@@ -63,7 +100,38 @@ export default function useMessageCapture(): void {
     }
 
     let cancelled = false;
-    let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+    function teardownCapture(reason: string): void {
+      const hadActiveListeners = listenersActiveRef.current;
+
+      if (messageSubRef.current) {
+        messageSubRef.current.remove();
+        messageSubRef.current = null;
+      }
+      if (removedSubRef.current) {
+        removedSubRef.current.remove();
+        removedSubRef.current = null;
+      }
+      if (deletedSubRef.current) {
+        deletedSubRef.current.remove();
+        deletedSubRef.current = null;
+      }
+      if (removalTimerRef.current) {
+        clearTimeout(removalTimerRef.current);
+        removalTimerRef.current = null;
+      }
+      if (cleanupTimerRef.current) {
+        clearInterval(cleanupTimerRef.current);
+        cleanupTimerRef.current = null;
+      }
+
+      removalQueueRef.current = [];
+      listenersActiveRef.current = false;
+
+      if (hadActiveListeners) {
+        console.log(TAG, `Capture listeners stopped: ${reason}`);
+      }
+    }
 
     async function processRemovalBatch(batch: WhatsAppMessageRemovedEvent[]) {
       console.log(TAG, `Processing removal batch: ${batch.length} items`);
@@ -123,6 +191,18 @@ export default function useMessageCapture(): void {
               TAG,
               `markDeleted(removal) key=${removed.notificationKey} found=${found} (${ms}ms since update)`,
             );
+            if (!found) {
+              console.log(
+                TAG,
+                `markDeleted(removal) miss key=${
+                  removed.notificationKey
+                } reason=${removed.removalReason ?? 'n/a'} title="${
+                  removed.title
+                }" text="${removed.messageText.substring(0, 50)}" pkg=${
+                  removed.packageName ?? 'unknown'
+                }`,
+              );
+            }
           } catch (error) {
             console.error(TAG, 'markDeleted(removal) failed:', error);
           }
@@ -130,12 +210,12 @@ export default function useMessageCapture(): void {
       }
     }
 
-    async function setup() {
-      const enabled = await isNotificationListenerEnabled();
-      console.log(TAG, `Notification listener enabled: ${enabled}`);
-      if (!enabled || cancelled) {
+    function setupListeners(trigger: string): void {
+      if (listenersActiveRef.current || cancelled) {
         return;
       }
+
+      console.log(TAG, `Starting capture listeners (trigger=${trigger})`);
 
       // --- Method 1: text-based deletion detection ---
       messageSubRef.current = startListening(
@@ -157,6 +237,12 @@ export default function useMessageCapture(): void {
             try {
               const found = await markDeleted(msg.notificationKey);
               console.log(TAG, `markDeleted(text) by key: found=${found}`);
+              if (!found) {
+                console.log(
+                  TAG,
+                  `markDeleted(text) miss key=${msg.notificationKey} contact="${msg.contactName}" pkg=${msg.packageName}`,
+                );
+              }
               // Note: we intentionally do NOT fall back to markDeletedByContact()
               // because it would mark the latest message for the contact which
               // may be a completely different, unrelated message — causing false positives.
@@ -228,7 +314,9 @@ export default function useMessageCapture(): void {
           TAG,
           `REMOVED event: key=${removed.notificationKey} title="${
             removed.title
-          }" text="${removed.messageText?.substring(0, 50)}"`,
+          }" reason=${removed.removalReason ?? 'n/a'} msSinceUpdate=${
+            removed.msSinceLastUpdate
+          } text="${removed.messageText?.substring(0, 50)}"`,
         );
         removalQueueRef.current.push(removed);
 
@@ -243,36 +331,108 @@ export default function useMessageCapture(): void {
         }, REMOVAL_DEBOUNCE_MS);
       });
 
+      // --- Method 4: MessagingStyle deletion detection (in-place updates) ---
+      deletedSubRef.current = startListeningForDeleted(
+        async (deleted: WhatsAppMessageDeletedEvent) => {
+          console.log(
+            TAG,
+            `DELETED event (MessagingStyle): key=${
+              deleted.notificationKey
+            } contact="${
+              deleted.contactName
+            }" text="${deleted.deletedText.substring(0, 50)}"`,
+          );
+          try {
+            // Try to restore the original text from the buffer
+            const found = await markDeletedWithRestore(deleted.notificationKey);
+            console.log(
+              TAG,
+              `markDeletedWithRestore key=${deleted.notificationKey} found=${found}`,
+            );
+            if (!found) {
+              // Buffer miss — store the deleted text directly as a confirmed deletion
+              await storeMessage({
+                contactName: deleted.contactName,
+                messageText: deleted.deletedText,
+                groupName: deleted.groupName,
+                isGroup: deleted.isGroup,
+                timestamp: deleted.timestamp,
+                isRead: false,
+                thumbnailBase64: null,
+                createdAt: Date.now(),
+                packageName: deleted.packageName || 'com.whatsapp',
+              });
+              console.log(
+                TAG,
+                `Stored MessagingStyle deletion for "${deleted.contactName}"`,
+              );
+            }
+          } catch (error) {
+            console.error(
+              TAG,
+              'MessagingStyle deletion handling failed:',
+              error,
+            );
+          }
+        },
+      );
+
       // Periodically expire stale buffered entries
-      cleanupTimer = setInterval(() => {
+      cleanupTimerRef.current = setInterval(() => {
         expireBuffer(BUFFER_MAX_AGE_MS).catch(err =>
           console.error(TAG, 'buffer cleanup failed', err),
         );
       }, BUFFER_CLEANUP_INTERVAL_MS);
 
-      expireBuffer(BUFFER_MAX_AGE_MS).catch(() => {});
-      console.log(TAG, 'Setup complete — listening for messages and removals');
+      expireBuffer(BUFFER_MAX_AGE_MS).catch(err =>
+        console.error(TAG, 'initial buffer cleanup failed', err),
+      );
+      listenersActiveRef.current = true;
+      console.log(
+        TAG,
+        'Setup complete — listening for messages, removals, and deletions',
+      );
     }
 
-    setup();
+    async function syncCaptureState(trigger: string): Promise<void> {
+      try {
+        const enabled = await isNotificationListenerEnabled();
+        if (cancelled) {
+          return;
+        }
+
+        console.log(
+          TAG,
+          `Permission check (${trigger}) enabled=${enabled} active=${listenersActiveRef.current}`,
+        );
+
+        if (enabled) {
+          setupListeners(trigger);
+        } else {
+          teardownCapture(`permission disabled (${trigger})`);
+        }
+      } catch (error) {
+        console.error(TAG, `Permission check failed (${trigger})`, error);
+      }
+    }
+
+    function handleAppStateChange(nextState: AppStateStatus): void {
+      if (nextState === 'active') {
+        syncCaptureState('app-active');
+      }
+    }
+
+    const appStateSub = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    syncCaptureState('mount');
 
     return () => {
       cancelled = true;
-      if (messageSubRef.current) {
-        messageSubRef.current.remove();
-        messageSubRef.current = null;
-      }
-      if (removedSubRef.current) {
-        removedSubRef.current.remove();
-        removedSubRef.current = null;
-      }
-      if (removalTimerRef.current) {
-        clearTimeout(removalTimerRef.current);
-      }
-      if (cleanupTimer) {
-        clearInterval(cleanupTimer);
-      }
-      removalQueueRef.current = [];
+      appStateSub.remove();
+      teardownCapture('hook unmounted');
     };
   }, []);
 }

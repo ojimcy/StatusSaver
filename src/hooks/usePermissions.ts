@@ -1,4 +1,5 @@
 import {useState, useEffect, useCallback} from 'react';
+import {AppState} from 'react-native';
 import {
   checkStoragePermission,
   requestStoragePermission,
@@ -16,11 +17,46 @@ export default function usePermissions() {
   const [notificationEnabled, setNotificationEnabled] = useState(false);
 
   useEffect(() => {
-    checkStoragePermission().then(setStorageGranted);
+    let cancelled = false;
 
-    if (isAndroid) {
-      isNotificationListenerEnabled().then(setNotificationEnabled);
+    async function refreshPermissions(trigger: string) {
+      try {
+        const storage = await checkStoragePermission();
+        if (!cancelled) {
+          setStorageGranted(storage);
+        }
+
+        if (isAndroid) {
+          const enabled = await isNotificationListenerEnabled();
+          if (!cancelled) {
+            setNotificationEnabled(enabled);
+          }
+          console.log(
+            '[usePermissions]',
+            `refreshPermissions(${trigger}) notificationEnabled=${enabled}`,
+          );
+        }
+      } catch (error) {
+        console.error(
+          '[usePermissions]',
+          `refreshPermissions(${trigger}) failed`,
+          error,
+        );
+      }
     }
+
+    const appStateSub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        refreshPermissions('app-active');
+      }
+    });
+
+    refreshPermissions('mount');
+
+    return () => {
+      cancelled = true;
+      appStateSub.remove();
+    };
   }, []);
 
   const requestStorage = useCallback(async () => {

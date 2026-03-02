@@ -49,6 +49,9 @@ export interface WhatsAppMessageRemovedEvent {
   timestamp: number;
   messageText: string;
   title: string;
+  packageName: string;
+  /** Android NotificationListenerService removal reason (if available). */
+  removalReason?: number;
   /** Milliseconds since this notification was last updated via onNotificationPosted.
    *  -1 if never tracked. A low value (<5s) strongly indicates deletion;
    *  a high value (>30s) likely means the user opened the chat. */
@@ -73,6 +76,27 @@ export function startListeningForRemoved(
   onRemoved: (msg: WhatsAppMessageRemovedEvent) => void,
 ): EmitterSubscription {
   return eventEmitter.addListener('onWhatsAppMessageRemoved', onRemoved);
+}
+
+export interface WhatsAppMessageDeletedEvent {
+  notificationKey: string;
+  deletedText: string;
+  contactName: string;
+  packageName: string;
+  timestamp: number;
+  groupName: string | null;
+  isGroup: boolean;
+}
+
+/**
+ * Subscribes to MessagingStyle-based deletion events from the native service.
+ * Fires when a message disappears from a notification's MessagingStyle message list
+ * during an in-place update (WhatsApp updated the notification without removing it).
+ */
+export function startListeningForDeleted(
+  onDeleted: (msg: WhatsAppMessageDeletedEvent) => void,
+): EmitterSubscription {
+  return eventEmitter.addListener('onWhatsAppMessageDeleted', onDeleted);
 }
 
 export function stopListening(subscription: EmitterSubscription): void {

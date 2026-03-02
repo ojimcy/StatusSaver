@@ -2,7 +2,9 @@ package com.statusvault.modules;
 
 import android.app.Notification;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Base64;
@@ -17,7 +19,11 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,14 +47,15 @@ public class WhatsAppNotificationService extends NotificationListenerService {
     // Event names emitted to React Native
     private static final String EVENT_MESSAGE = "onWhatsAppMessage";
     private static final String EVENT_MESSAGE_REMOVED = "onWhatsAppMessageRemoved";
+    private static final String EVENT_MESSAGE_DELETED = "onWhatsAppMessageDeleted";
 
     // WA Business group title format: "GroupName (N messages): SenderName"
     // or "GroupName (N messages): ~ SenderName"
     private static final Pattern WA_BUSINESS_GROUP_PATTERN =
             Pattern.compile("^(.+?)\\s*\\(\\d+\\s+messages?\\):\\s*~?\\s*(.+)$");
 
-    // Max time between text change and revert to consider it a deletion (60 seconds)
-    private static final long REVERT_WINDOW_MS = 60_000;
+    // Max time between text change and revert to consider it a deletion (120 seconds)
+    private static final long REVERT_WINDOW_MS = 120_000;
 
     // Max age for textHistory entries before they are pruned (10 minutes)
     private static final long TEXT_HISTORY_MAX_AGE_MS = 10 * 60_000;
@@ -75,6 +82,19 @@ public class WhatsAppNotificationService extends NotificationListenerService {
      * or just the user opening the chat (stale notification removed).
      */
     private final HashMap<String, Long> lastUpdateTime = new HashMap<>();
+
+    /**
+     * Tracks per-notification MessagingStyle message sets for detecting in-place
+     * deletions. Key: notification key, Value: set of message text snippets.
+     * When WhatsApp updates a notification in-place and a message disappears
+     * from the set, it was likely deleted.
+     */
+    private final HashMap<String, HashSet<String>> messageSetByKey = new HashMap<>();
+
+    /** Max age for stale messageSetByKey entries before pruning (15 minutes). */
+    private static final long MESSAGE_SET_MAX_AGE_MS = 15 * 60_000;
+    /** Tracks when each messageSetByKey entry was last updated. */
+    private final HashMap<String, Long> messageSetTimestamps = new HashMap<>();
 
     /**
      * Queue for events that couldn't be emitted because the React context wasn't
@@ -142,12 +162,48 @@ public class WhatsAppNotificationService extends NotificationListenerService {
                             history.addLast(new TextEntry(text.toString(), sbn.getPostTime()));
                         }
                     }
+
+                    // Seed MessagingStyle message set for in-place deletion detection
+                    HashSet<String> msgSet = extractMessagingStyleMessages(extras);
+                    if (msgSet != null) {
+                        messageSetByKey.put(sbn.getKey(), msgSet);
+                        messageSetTimestamps.put(sbn.getKey(), now);
+                    }
                 }
                 seeded++;
             }
             Log.d(TAG, "onListenerConnected: seeded " + seeded + " WhatsApp notification timestamps");
         } catch (Exception e) {
             Log.e(TAG, "Error in onListenerConnected", e);
+        }
+    }
+
+    /**
+     * Extracts individual message texts from a MessagingStyle notification's EXTRA_MESSAGES.
+     * Returns null if not available (API < 24 or no MessagingStyle messages).
+     */
+    private HashSet<String> extractMessagingStyleMessages(Bundle extras) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || extras == null) {
+            return null;
+        }
+        try {
+            Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES);
+            if (messages == null || messages.length == 0) {
+                return null;
+            }
+            HashSet<String> texts = new HashSet<>();
+            for (Parcelable msg : messages) {
+                if (msg instanceof Bundle) {
+                    CharSequence text = ((Bundle) msg).getCharSequence("text");
+                    if (text != null && text.length() > 0) {
+                        texts.add(text.toString());
+                    }
+                }
+            }
+            return texts.isEmpty() ? null : texts;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to extract MessagingStyle messages", e);
+            return null;
         }
     }
 
@@ -353,6 +409,52 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             // Track when this notification was last updated
             lastUpdateTime.put(sbn.getKey(), System.currentTimeMillis());
 
+            // --- MessagingStyle in-place deletion detection ---
+            // When WhatsApp updates a notification in-place (same key) and a message
+            // disappears from the MessagingStyle message list, it was likely deleted.
+            HashSet<String> currentMsgSet = extractMessagingStyleMessages(extras);
+            if (currentMsgSet != null) {
+                String key = sbn.getKey();
+                HashSet<String> previousMsgSet = messageSetByKey.get(key);
+
+                if (previousMsgSet != null) {
+                    // Find messages that were in the previous set but not in the current set
+                    for (String prevText : previousMsgSet) {
+                        if (!currentMsgSet.contains(prevText)) {
+                            Log.d(TAG, "MessagingStyle deletion detected: \"" + prevText + "\" disappeared from key=" + key);
+                            WritableMap deletedData = Arguments.createMap();
+                            deletedData.putString("notificationKey", key);
+                            deletedData.putString("deletedText", prevText);
+                            deletedData.putString("contactName", contactName);
+                            deletedData.putString("packageName", packageName);
+                            deletedData.putDouble("timestamp", timestamp);
+                            if (groupName != null) {
+                                deletedData.putString("groupName", groupName);
+                            } else {
+                                deletedData.putNull("groupName");
+                            }
+                            deletedData.putBoolean("isGroup", isGroup);
+                            emitEvent(EVENT_MESSAGE_DELETED, deletedData);
+                        }
+                    }
+                }
+
+                // Update tracked set
+                messageSetByKey.put(key, currentMsgSet);
+                messageSetTimestamps.put(key, System.currentTimeMillis());
+
+                // Prune stale entries
+                long now2 = System.currentTimeMillis();
+                Iterator<Map.Entry<String, Long>> it = messageSetTimestamps.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Long> entry = it.next();
+                    if ((now2 - entry.getValue()) > MESSAGE_SET_MAX_AGE_MS) {
+                        messageSetByKey.remove(entry.getKey());
+                        it.remove();
+                    }
+                }
+            }
+
             // Emit event to React Native
             emitEvent(EVENT_MESSAGE, eventData);
 
@@ -365,15 +467,40 @@ public class WhatsAppNotificationService extends NotificationListenerService {
     }
 
     @Override
+    public void onNotificationRemoved(StatusBarNotification sbn) {
+        // API < 26 fallback (no reason provided). Forward to shared handler.
+        handleNotificationRemoved(sbn, -1);
+    }
+
+    @Override
     public void onNotificationRemoved(StatusBarNotification sbn, RankingMap rankingMap, int reason) {
+        handleNotificationRemoved(sbn, reason);
+    }
+
+    private void handleNotificationRemoved(StatusBarNotification sbn, int reason) {
         if (sbn == null) {
             return;
         }
 
-        // Only react to app-initiated removals (WhatsApp itself cancelling the notification).
-        // This filters out user swipes (REASON_CANCEL) and "clear all" (REASON_CANCEL_ALL).
-        if (reason != REASON_APP_CANCEL) {
+        // Whitelist: only pass through removal reasons that could indicate a deletion.
+        //  - REASON_APP_CANCEL (8): app explicitly cancelled — WA Business deletion
+        //  - REASON_CANCEL (2): regular WhatsApp now uses this during deletion
+        //  - -1: legacy API (no reason provided)
+        // Everything else (click, clear-all, regrouping, optimization) is NOT a deletion.
+        // Notably, REASON_GROUP_SUMMARY_CANCELED (12) fires when WhatsApp regroups
+        // its notification stack — these happen seconds after posting and look like
+        // deletions to the recency filter, causing mass false positives.
+        if (reason != REASON_APP_CANCEL && reason != REASON_CANCEL && reason != -1) {
+            Log.d(TAG, "Skipping non-deletion removal key=" + sbn.getKey()
+                    + " reason=" + reasonToString(reason) + " (" + reason + ")");
             return;
+        }
+
+        if (reason == -1) {
+            Log.d(TAG, "Notification removal with unknown reason (legacy API) key=" + sbn.getKey());
+        } else {
+            Log.d(TAG, "Notification removal key=" + sbn.getKey()
+                    + " reason=" + reasonToString(reason) + " (" + reason + ")");
         }
 
         String packageName = sbn.getPackageName();
@@ -385,13 +512,17 @@ public class WhatsAppNotificationService extends NotificationListenerService {
         }
 
         try {
-            // Skip group summary removals (not individual messages)
-            if ((sbn.getNotification().flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+            Notification notification = sbn.getNotification();
+            if (notification == null) {
                 return;
             }
 
-            Notification notification = sbn.getNotification();
-            Bundle extras = notification != null ? notification.extras : null;
+            // Skip group summary removals (not individual messages)
+            if ((notification.flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+                return;
+            }
+
+            Bundle extras = notification.extras;
 
             // Skip system notification removals
             if (extras != null) {
@@ -413,6 +544,7 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             eventData.putInt("notificationId", sbn.getId());
             eventData.putDouble("timestamp", sbn.getPostTime());
             eventData.putString("packageName", packageName);
+            eventData.putInt("removalReason", reason);
 
             // Include how long ago this notification was last updated.
             // A recent update followed by removal strongly indicates deletion.
@@ -443,12 +575,40 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             // Clean up tracking data for this key (but NOT textHistory —
             // it may be needed for revert detection if WhatsApp regroups notifications).
             lastUpdateTime.remove(sbn.getKey());
+            messageSetByKey.remove(sbn.getKey());
+            messageSetTimestamps.remove(sbn.getKey());
 
-            Log.d(TAG, "WhatsApp notification removed (APP_CANCEL): " + sbn.getKey()
+            Log.d(TAG, "WhatsApp notification removed: " + sbn.getKey()
+                    + " reason=" + reasonToString(reason) + " (" + reason + ")"
                     + " msSinceLastUpdate=" + msSinceLastUpdate);
 
         } catch (Exception e) {
             Log.e(TAG, "Error processing removed WhatsApp notification", e);
+        }
+    }
+
+    private String reasonToString(int reason) {
+        switch (reason) {
+            case -1:
+                return "UNKNOWN_LEGACY";
+            case REASON_APP_CANCEL:
+                return "APP_CANCEL";
+            case REASON_CANCEL:
+                return "CANCEL";
+            case REASON_CANCEL_ALL:
+                return "CANCEL_ALL";
+            case REASON_CLICK:
+                return "CLICK";
+            case REASON_LISTENER_CANCEL:
+                return "LISTENER_CANCEL";
+            case REASON_GROUP_SUMMARY_CANCELED:
+                return "GROUP_SUMMARY_CANCELED";
+            case REASON_GROUP_OPTIMIZATION:
+                return "GROUP_OPTIMIZATION";
+            case REASON_PACKAGE_CHANGED:
+                return "PACKAGE_CHANGED";
+            default:
+                return "OTHER";
         }
     }
 

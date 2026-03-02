@@ -29,18 +29,33 @@ export async function bufferMessage(
   // Upsert: if a row with this notification_key exists, update its text
   // (WhatsApp reuses the same key when a notification is updated)
   const [existing] = await db.executeSql(
-    'SELECT id FROM deleted_messages WHERE notification_key = ?',
+    'SELECT id, message_text, is_deleted FROM deleted_messages WHERE notification_key = ?',
     [msg.notificationKey],
   );
 
   if (existing.rows.length > 0) {
-    const id = existing.rows.item(0).id;
-    // Reset is_deleted=0: if the notification was reposted (regrouping),
-    // the previous removal was NOT a deletion — it's still alive.
-    await db.executeSql(
-      'UPDATE deleted_messages SET message_text = ?, timestamp = ?, is_deleted = 0 WHERE id = ?',
-      [msg.messageText, msg.timestamp, id],
-    );
+    const row = existing.rows.item(0);
+    const id = row.id;
+
+    // Don't overwrite confirmed deletions — the original text is already preserved
+    if (row.is_deleted === 1) {
+      return id;
+    }
+
+    const oldText: string = row.message_text;
+    if (oldText !== msg.messageText) {
+      // Text changed: save old text into previous_message_text before overwriting
+      await db.executeSql(
+        'UPDATE deleted_messages SET message_text = ?, previous_message_text = ?, timestamp = ?, is_deleted = 0 WHERE id = ?',
+        [msg.messageText, oldText, msg.timestamp, id],
+      );
+    } else {
+      // Same text: just update timestamp, reset is_deleted (repost/regroup)
+      await db.executeSql(
+        'UPDATE deleted_messages SET timestamp = ?, is_deleted = 0 WHERE id = ?',
+        [msg.timestamp, id],
+      );
+    }
     return id;
   }
 
@@ -70,6 +85,23 @@ export async function markDeleted(notificationKey: string): Promise<boolean> {
   const db = await getDatabase();
   const [result] = await db.executeSql(
     'UPDATE deleted_messages SET is_deleted = 1 WHERE notification_key = ? AND is_deleted = 0',
+    [notificationKey],
+  );
+  return result.rowsAffected > 0;
+}
+
+/** Mark a buffered message as deleted, restoring previous_message_text as the original message.
+ *  Used when MessagingStyle tracking detects a message disappeared from an in-place update. */
+export async function markDeletedWithRestore(
+  notificationKey: string,
+): Promise<boolean> {
+  const db = await getDatabase();
+  const [result] = await db.executeSql(
+    `UPDATE deleted_messages
+     SET is_deleted = 1,
+         message_text = COALESCE(previous_message_text, message_text),
+         previous_message_text = NULL
+     WHERE notification_key = ? AND is_deleted = 0`,
     [notificationKey],
   );
   return result.rowsAffected > 0;

@@ -42,6 +42,7 @@ public class NotificationListenerModule extends ReactContextBaseJavaModule
     // Event names (same as WhatsAppNotificationService)
     private static final String EVENT_MESSAGE = "onWhatsAppMessage";
     private static final String EVENT_MESSAGE_REMOVED = "onWhatsAppMessageRemoved";
+    private static final String EVENT_MESSAGE_DELETED = "onWhatsAppMessageDeleted";
 
     private int listenerCount = 0;
 
@@ -66,6 +67,7 @@ public class NotificationListenerModule extends ReactContextBaseJavaModule
         Map<String, Object> constants = new HashMap<>();
         constants.put("EVENT_MESSAGE", EVENT_MESSAGE);
         constants.put("EVENT_MESSAGE_REMOVED", EVENT_MESSAGE_REMOVED);
+        constants.put("EVENT_MESSAGE_DELETED", EVENT_MESSAGE_DELETED);
         return constants;
     }
 
