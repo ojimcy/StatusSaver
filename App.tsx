@@ -1,12 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  StatusBar,
-  StyleSheet,
-  Platform,
-  AppState,
-  View,
-  Text,
-} from 'react-native';
+import {StatusBar, StyleSheet, AppState, View, Text} from 'react-native';
 import type {AppStateStatus} from 'react-native';
 import {
   NavigationContainer,
@@ -15,7 +8,10 @@ import {
 } from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import AdManager from './src/services/AdService';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -170,12 +166,7 @@ interface TabLabelProps {
 
 function TabLabel({label, focused, color}: TabLabelProps) {
   return (
-    <Text
-      style={[
-        styles.tabLabel,
-        {color},
-        focused && styles.tabLabelFocused,
-      ]}>
+    <Text style={[styles.tabLabel, {color}, focused && styles.tabLabelFocused]}>
       {label}
     </Text>
   );
@@ -185,6 +176,7 @@ function TabLabel({label, focused, color}: TabLabelProps) {
 
 function MainTabs() {
   const {theme} = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -195,7 +187,8 @@ function MainTabs() {
           borderTopColor: theme.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           paddingTop: spacing.xs,
-          height: Platform.OS === 'ios' ? 84 : 60,
+          paddingBottom: insets.bottom,
+          height: 60 + insets.bottom,
         },
         tabBarActiveTintColor: theme.tabBarActive,
         tabBarInactiveTintColor: theme.tabBarInactive,
@@ -399,7 +392,10 @@ function App(): React.JSX.Element {
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
     return () => subscription.remove();
   }, [showOnboarding]);
 

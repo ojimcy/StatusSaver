@@ -4,10 +4,10 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Dimensions,
   Platform,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import useSettingsStore from '../store/useSettingsStore';
 import usePermissions from '../hooks/usePermissions';
 import useTheme from '../hooks/useTheme';

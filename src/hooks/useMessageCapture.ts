@@ -29,7 +29,15 @@ const MAX_REMOVALS_PER_CONTACT = 2;
 // updated (via onNotificationPosted) within this window before the removal.
 // A "stale" removal (notification sitting unchanged for a long time) is almost
 // certainly the user opening the chat, not a message deletion.
-const REMOVAL_RECENCY_THRESHOLD_MS = 5_000;
+// Note: when WhatsApp processes "delete for everyone", it typically updates the
+// notification before removing it, refreshing lastUpdateTime. 15s gives enough
+// room for delayed processing.
+const REMOVAL_RECENCY_THRESHOLD_MS = 15_000;
+
+// When we have no tracking data (msSinceLastUpdate = -1, e.g. after service
+// restart), allow a removal through if the notification was posted within
+// this window. Beyond this, it's too risky (likely user opening chat).
+const UNTRACKED_POST_RECENCY_MS = 2 * 60 * 1000; // 2 minutes
 
 const DELETION_PATTERNS = [
   /this message was deleted/i,
@@ -57,9 +65,7 @@ export default function useMessageCapture(): void {
     let cancelled = false;
     let cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
-    async function processRemovalBatch(
-      batch: WhatsAppMessageRemovedEvent[],
-    ) {
+    async function processRemovalBatch(batch: WhatsAppMessageRemovedEvent[]) {
       console.log(TAG, `Processing removal batch: ${batch.length} items`);
 
       const byContact = new Map<string, WhatsAppMessageRemovedEvent[]>();
@@ -94,13 +100,21 @@ export default function useMessageCapture(): void {
           }
 
           // If msSinceLastUpdate is -1 (never tracked / service restarted),
-          // also skip — we have no evidence this was a deletion.
+          // allow through ONLY if the notification was posted very recently
+          // AND there's just 1 removal for this contact (strong deletion signal).
           if (ms < 0) {
+            const postAge = Date.now() - removed.timestamp;
+            if (removals.length > 1 || postAge > UNTRACKED_POST_RECENCY_MS) {
+              console.log(
+                TAG,
+                `Skipping removal key=${removed.notificationKey} — no tracking data (postAge=${postAge}ms, count=${removals.length})`,
+              );
+              continue;
+            }
             console.log(
               TAG,
-              `Skipping removal key=${removed.notificationKey} — no update tracking data`,
+              `Allowing untracked removal key=${removed.notificationKey} — recently posted (${postAge}ms), single removal`,
             );
-            continue;
           }
 
           try {
@@ -124,81 +138,97 @@ export default function useMessageCapture(): void {
       }
 
       // --- Method 1: text-based deletion detection ---
-      messageSubRef.current = startListening(async (msg: WhatsAppMessageEvent) => {
-        console.log(
-          TAG,
-          `MSG received: contact="${msg.contactName}" text="${msg.messageText.substring(0, 50)}" key=${msg.notificationKey} pkg=${msg.packageName}`,
-        );
-
-        if (isDeletionText(msg.messageText)) {
+      messageSubRef.current = startListening(
+        async (msg: WhatsAppMessageEvent) => {
           console.log(
             TAG,
-            `Deletion text detected! key=${msg.notificationKey} contact="${msg.contactName}"`,
+            `MSG received: contact="${
+              msg.contactName
+            }" text="${msg.messageText.substring(0, 50)}" key=${
+              msg.notificationKey
+            } pkg=${msg.packageName}`,
           );
-          try {
-            const found = await markDeleted(msg.notificationKey);
-            console.log(TAG, `markDeleted(text) by key: found=${found}`);
-            // Note: we intentionally do NOT fall back to markDeletedByContact()
-            // because it would mark the latest message for the contact which
-            // may be a completely different, unrelated message — causing false positives.
-            // If the key doesn't match, the original was never captured (honest failure).
-          } catch (error) {
-            console.error(TAG, 'markDeleted(text) failed:', error);
+
+          if (isDeletionText(msg.messageText)) {
+            console.log(
+              TAG,
+              `Deletion text detected! key=${msg.notificationKey} contact="${msg.contactName}"`,
+            );
+            try {
+              const found = await markDeleted(msg.notificationKey);
+              console.log(TAG, `markDeleted(text) by key: found=${found}`);
+              // Note: we intentionally do NOT fall back to markDeletedByContact()
+              // because it would mark the latest message for the contact which
+              // may be a completely different, unrelated message — causing false positives.
+              // If the key doesn't match, the original was never captured (honest failure).
+            } catch (error) {
+              console.error(TAG, 'markDeleted(text) failed:', error);
+            }
+            return;
           }
-          return;
-        }
 
-        // --- Method 3: revert detection (1-on-1 chats) ---
-        // Native detected text went A → B → A, meaning B was deleted.
-        if (msg.isRevert && msg.deletedText) {
-          console.log(
-            TAG,
-            `REVERT detected! contact="${msg.contactName}" deleted="${msg.deletedText.substring(0, 50)}"`,
-          );
+          // --- Method 3: revert detection (1-on-1 chats) ---
+          // Native detected text went A → B → A, meaning B was deleted.
+          if (msg.isRevert && msg.deletedText) {
+            console.log(
+              TAG,
+              `REVERT detected! contact="${
+                msg.contactName
+              }" deleted="${msg.deletedText.substring(0, 50)}"`,
+            );
+            try {
+              // Store the deleted text as a confirmed deletion
+              await storeMessage({
+                contactName: msg.contactName,
+                messageText: msg.deletedText,
+                groupName: msg.groupName,
+                isGroup: msg.isGroup,
+                timestamp: msg.timestamp,
+                isRead: false,
+                thumbnailBase64: null,
+                createdAt: Date.now(),
+                packageName: msg.packageName || 'com.whatsapp',
+              });
+              console.log(
+                TAG,
+                `Stored reverted deletion for "${msg.contactName}"`,
+              );
+            } catch (error) {
+              console.error(TAG, 'storeMessage(revert) failed:', error);
+            }
+          }
+
+          // Buffer the current text (whether normal message or post-revert text)
           try {
-            // Store the deleted text as a confirmed deletion
-            await storeMessage({
+            const id = await bufferMessage({
               contactName: msg.contactName,
-              messageText: msg.deletedText,
+              messageText: msg.messageText,
               groupName: msg.groupName,
               isGroup: msg.isGroup,
               timestamp: msg.timestamp,
               isRead: false,
-              thumbnailBase64: null,
+              thumbnailBase64: msg.thumbnailBase64,
               createdAt: Date.now(),
               packageName: msg.packageName || 'com.whatsapp',
+              notificationKey: msg.notificationKey,
             });
-            console.log(TAG, `Stored reverted deletion for "${msg.contactName}"`);
+            console.log(
+              TAG,
+              `Buffered message id=${id} key=${msg.notificationKey}`,
+            );
           } catch (error) {
-            console.error(TAG, 'storeMessage(revert) failed:', error);
+            console.error(TAG, 'bufferMessage failed:', error);
           }
-        }
-
-        // Buffer the current text (whether normal message or post-revert text)
-        try {
-          const id = await bufferMessage({
-            contactName: msg.contactName,
-            messageText: msg.messageText,
-            groupName: msg.groupName,
-            isGroup: msg.isGroup,
-            timestamp: msg.timestamp,
-            isRead: false,
-            thumbnailBase64: msg.thumbnailBase64,
-            createdAt: Date.now(),
-            packageName: msg.packageName || 'com.whatsapp',
-            notificationKey: msg.notificationKey,
-          });
-          console.log(TAG, `Buffered message id=${id} key=${msg.notificationKey}`);
-        } catch (error) {
-          console.error(TAG, 'bufferMessage failed:', error);
-        }
-      });
+        },
+      );
 
       // --- Method 2: debounced notification removal detection ---
       removedSubRef.current = startListeningForRemoved(removed => {
         console.log(
           TAG,
-          `REMOVED event: key=${removed.notificationKey} title="${removed.title}" text="${removed.messageText?.substring(0, 50)}"`,
+          `REMOVED event: key=${removed.notificationKey} title="${
+            removed.title
+          }" text="${removed.messageText?.substring(0, 50)}"`,
         );
         removalQueueRef.current.push(removed);
 

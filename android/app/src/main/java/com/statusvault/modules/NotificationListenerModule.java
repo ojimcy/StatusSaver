@@ -5,9 +5,13 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationManagerCompat;
+
+import java.util.Set;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -67,28 +71,40 @@ public class NotificationListenerModule extends ReactContextBaseJavaModule
 
     /**
      * Checks if the notification listener permission is granted.
-     * Reads from Settings.Secure to determine if our service is enabled.
+     * Uses NotificationManagerCompat which is reliable across all Android
+     * versions and OEM skins (Samsung, Xiaomi, etc.).
      */
     @ReactMethod
     public void isEnabled(Promise promise) {
         try {
-            String enabledListeners = Settings.Secure.getString(
-                    getReactApplicationContext().getContentResolver(),
-                    "enabled_notification_listeners");
+            // Primary check: NotificationManagerCompat (reliable across OEMs)
+            Set<String> enabledPackages = NotificationManagerCompat
+                    .getEnabledListenerPackages(getReactApplicationContext());
+            String ourPackage = getReactApplicationContext().getPackageName();
+            boolean isEnabled = enabledPackages.contains(ourPackage);
 
-            if (enabledListeners == null || TextUtils.isEmpty(enabledListeners)) {
-                promise.resolve(false);
-                return;
+            Log.d(MODULE_NAME, "isEnabled check: ourPackage=" + ourPackage
+                    + " enabledPackages=" + enabledPackages
+                    + " result=" + isEnabled);
+
+            // Fallback: Settings.Secure string matching (in case the above
+            // returns stale data on some devices)
+            if (!isEnabled) {
+                String enabledListeners = Settings.Secure.getString(
+                        getReactApplicationContext().getContentResolver(),
+                        "enabled_notification_listeners");
+                if (enabledListeners != null && !TextUtils.isEmpty(enabledListeners)) {
+                    ComponentName componentName = new ComponentName(
+                            getReactApplicationContext(),
+                            WhatsAppNotificationService.class);
+                    String flat = componentName.flattenToString();
+                    isEnabled = enabledListeners.contains(flat);
+                    Log.d(MODULE_NAME, "Fallback check: flat=" + flat
+                            + " enabledListeners=" + enabledListeners
+                            + " result=" + isEnabled);
+                }
             }
 
-            // Our service component name
-            ComponentName componentName = new ComponentName(
-                    getReactApplicationContext(),
-                    WhatsAppNotificationService.class);
-            String flatComponentName = componentName.flattenToString();
-
-            // Check if our service is in the enabled list
-            boolean isEnabled = enabledListeners.contains(flatComponentName);
             promise.resolve(isEnabled);
 
         } catch (Exception e) {

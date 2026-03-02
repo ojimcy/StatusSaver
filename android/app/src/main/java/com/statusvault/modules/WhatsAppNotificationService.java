@@ -76,6 +76,81 @@ public class WhatsAppNotificationService extends NotificationListenerService {
      */
     private final HashMap<String, Long> lastUpdateTime = new HashMap<>();
 
+    /**
+     * Queue for events that couldn't be emitted because the React context wasn't
+     * available (app killed / in background). Events are replayed in order once
+     * the context becomes available.
+     */
+    private static class QueuedEvent {
+        final String eventName;
+        final HashMap<String, Object> data;
+        QueuedEvent(String eventName, WritableMap data) {
+            this.eventName = eventName;
+            // Copy the WritableMap into a plain HashMap so it survives beyond the
+            // ReadableMap lifecycle.  We reconstruct a WritableMap on replay.
+            this.data = data.toHashMap();
+        }
+    }
+    private final LinkedList<QueuedEvent> pendingEvents = new LinkedList<>();
+    private static final int MAX_PENDING_EVENTS = 50;
+
+    /**
+     * Called when the listener is connected (service start/restart).
+     * Seeds lastUpdateTime from active WhatsApp notifications so that
+     * removal detection works immediately after a service restart.
+     */
+    @Override
+    public void onListenerConnected() {
+        super.onListenerConnected();
+        try {
+            StatusBarNotification[] active = getActiveNotifications();
+            if (active == null) {
+                Log.d(TAG, "onListenerConnected: no active notifications");
+                return;
+            }
+
+            long now = System.currentTimeMillis();
+            int seeded = 0;
+            for (StatusBarNotification sbn : active) {
+                String pkg = sbn.getPackageName();
+                if (!WHATSAPP_PACKAGE.equals(pkg)
+                        && !WHATSAPP_BUSINESS_PACKAGE.equals(pkg)) {
+                    continue;
+                }
+                // Skip group summaries
+                if ((sbn.getNotification().flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+                    continue;
+                }
+                // Seed with the notification's post time so the recency calculation
+                // is relative to when the notification was actually posted, not "now".
+                lastUpdateTime.put(sbn.getKey(), sbn.getPostTime());
+
+                // Also seed text history for revert detection (1-on-1 chats)
+                Bundle extras = sbn.getNotification().extras;
+                if (extras != null) {
+                    CharSequence text = extras.getCharSequence(Notification.EXTRA_TEXT);
+                    CharSequence title = extras.getCharSequence(Notification.EXTRA_TITLE);
+                    if (text != null && title != null && !title.toString().contains(" @ ")) {
+                        // Likely a 1-on-1 chat — seed text history
+                        String key = sbn.getKey();
+                        LinkedList<TextEntry> history = textHistory.get(key);
+                        if (history == null) {
+                            history = new LinkedList<>();
+                            textHistory.put(key, history);
+                        }
+                        if (history.isEmpty() || !text.toString().equals(history.getLast().text)) {
+                            history.addLast(new TextEntry(text.toString(), sbn.getPostTime()));
+                        }
+                    }
+                }
+                seeded++;
+            }
+            Log.d(TAG, "onListenerConnected: seeded " + seeded + " WhatsApp notification timestamps");
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onListenerConnected", e);
+        }
+    }
+
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         if (sbn == null) {
@@ -394,6 +469,9 @@ public class WhatsAppNotificationService extends NotificationListenerService {
 
     /**
      * Emits an event to the React Native JavaScript layer via RCTDeviceEventEmitter.
+     * If the React context is not available, the event is queued and replayed
+     * when the context becomes available (on the next emitEvent call or
+     * when onNotificationPosted triggers with an active context).
      */
     private void emitEvent(String eventName, WritableMap data) {
         try {
@@ -403,14 +481,64 @@ public class WhatsAppNotificationService extends NotificationListenerService {
             ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
 
             if (reactContext != null && reactContext.hasActiveReactInstance()) {
+                // Replay any queued events first (in order)
+                drainPendingEvents(reactContext);
+                // Then emit the current event
                 reactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                         .emit(eventName, data);
             } else {
-                Log.w(TAG, "React context not available, event not emitted: " + eventName);
+                // Queue the event for later replay
+                synchronized (pendingEvents) {
+                    if (pendingEvents.size() >= MAX_PENDING_EVENTS) {
+                        pendingEvents.removeFirst(); // drop oldest
+                    }
+                    pendingEvents.addLast(new QueuedEvent(eventName, data));
+                }
+                Log.w(TAG, "React context not available, event queued ("
+                        + pendingEvents.size() + " pending): " + eventName);
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to emit event: " + eventName, e);
+        }
+    }
+
+    /**
+     * Replays all queued events that were captured while the React context
+     * was unavailable.
+     */
+    private void drainPendingEvents(ReactContext reactContext) {
+        synchronized (pendingEvents) {
+            if (pendingEvents.isEmpty()) {
+                return;
+            }
+            Log.d(TAG, "Replaying " + pendingEvents.size() + " queued events");
+            while (!pendingEvents.isEmpty()) {
+                QueuedEvent queued = pendingEvents.removeFirst();
+                try {
+                    WritableMap map = Arguments.createMap();
+                    for (HashMap.Entry<String, Object> entry : queued.data.entrySet()) {
+                        String key = entry.getKey();
+                        Object value = entry.getValue();
+                        if (value == null) {
+                            map.putNull(key);
+                        } else if (value instanceof String) {
+                            map.putString(key, (String) value);
+                        } else if (value instanceof Double) {
+                            map.putDouble(key, (Double) value);
+                        } else if (value instanceof Boolean) {
+                            map.putBoolean(key, (Boolean) value);
+                        } else if (value instanceof Integer) {
+                            map.putInt(key, (Integer) value);
+                        }
+                    }
+                    reactContext
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit(queued.eventName, map);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to replay queued event: " + queued.eventName, e);
+                }
+            }
         }
     }
 }

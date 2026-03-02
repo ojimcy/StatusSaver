@@ -6,8 +6,8 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  SafeAreaView,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ImageViewer from '../components/ImageViewer';
 import VideoPlayer from '../components/VideoPlayer';
 import {spacing, fontSize} from '../theme/spacing';
@@ -16,6 +16,7 @@ import AdManager from '../services/AdService';
 import useSettingsStore from '../store/useSettingsStore';
 
 const ViewerScreen = ({navigation, route}: any) => {
+  const insets = useSafeAreaInsets();
   const {file} = route.params;
   const [paused, setPaused] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -71,7 +72,7 @@ const ViewerScreen = ({navigation, route}: any) => {
       )}
 
       {/* Top bar with back button */}
-      <SafeAreaView style={styles.topBar}>
+      <View style={[styles.topBar, {paddingTop: insets.top}]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
@@ -82,10 +83,10 @@ const ViewerScreen = ({navigation, route}: any) => {
           {file.type === 'image' ? 'Image' : 'Video'}
         </Text>
         <View style={styles.backButton} />
-      </SafeAreaView>
+      </View>
 
       {/* Bottom action bar */}
-      <SafeAreaView style={styles.bottomBar}>
+      <View style={[styles.bottomBar, {paddingBottom: insets.bottom}]}>
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -116,7 +117,7 @@ const ViewerScreen = ({navigation, route}: any) => {
             </Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 };
