@@ -1,14 +1,14 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import {Play, Check} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
-import {spacing, borderRadius, fontSize} from '../theme/spacing';
+import {spacing, borderRadius} from '../theme/spacing';
 import type {StatusFile} from '../types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -21,7 +21,7 @@ const ITEM_SIZE =
 interface StatusCardProps {
   file: StatusFile;
   onPress: () => void;
-  onLongPress: () => void;
+  onLongPress: (position: {x: number; y: number}) => void;
   selected: boolean;
   selectionMode: boolean;
 }
@@ -34,12 +34,20 @@ const StatusCard: React.FC<StatusCardProps> = ({
   selectionMode,
 }) => {
   const {theme} = useTheme();
+  const containerRef = useRef<View>(null);
+
+  const handleLongPress = () => {
+    containerRef.current?.measureInWindow((x, y, width, height) => {
+      onLongPress({x, y: y + height});
+    });
+  };
 
   return (
     <TouchableOpacity
+      ref={containerRef}
       style={styles.container}
       onPress={onPress}
-      onLongPress={onLongPress}
+      onLongPress={handleLongPress}
       activeOpacity={0.7}>
       <View style={styles.imageWrapper}>
         <FastImage
@@ -51,7 +59,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
         {file.type === 'video' && (
           <View style={styles.videoOverlay}>
             <View style={styles.playIcon}>
-              <Text style={styles.playIconText}>{'  \u25B6'}</Text>
+              <Play size={16} color="#FFFFFF" fill="#FFFFFF" />
             </View>
           </View>
         )}
@@ -66,7 +74,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
                   borderColor: theme.accent,
                 },
               ]}>
-              {selected && <Text style={styles.checkmark}>{'\u2713'}</Text>}
+              {selected && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
             </View>
           </View>
         )}
@@ -106,10 +114,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playIconText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
   selectionOverlay: {
     position: 'absolute',
     top: spacing.xs,
@@ -124,11 +128,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: fontSize.sm,
-    fontWeight: '700',
   },
   selectedTint: {
     ...StyleSheet.absoluteFillObject,

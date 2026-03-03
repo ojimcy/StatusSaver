@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import {Check, X} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
 import {spacing, fontSize, borderRadius} from '../theme/spacing';
 
@@ -61,9 +62,9 @@ const ConsentModal: React.FC<ConsentModalProps> = ({
             </Text>
             {CAPTURED_ITEMS.map((item, index) => (
               <View key={index} style={styles.bulletRow}>
-                <Text style={[styles.bullet, {color: theme.accent}]}>
-                  {'\u2713'}
-                </Text>
+                <View style={styles.bulletIcon}>
+                  <Check size={16} color={theme.accent} strokeWidth={3} />
+                </View>
                 <Text style={[styles.bulletText, {color: theme.text}]}>
                   {item}
                 </Text>
@@ -79,9 +80,9 @@ const ConsentModal: React.FC<ConsentModalProps> = ({
             </Text>
             {NOT_CAPTURED_ITEMS.map((item, index) => (
               <View key={index} style={styles.bulletRow}>
-                <Text style={[styles.bullet, {color: theme.error}]}>
-                  {'\u2715'}
-                </Text>
+                <View style={styles.bulletIcon}>
+                  <X size={16} color={theme.error} strokeWidth={3} />
+                </View>
                 <Text style={[styles.bulletText, {color: theme.text}]}>
                   {item}
                 </Text>
@@ -168,11 +169,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs + 2,
     paddingLeft: spacing.sm,
   },
-  bullet: {
-    fontSize: fontSize.md,
-    fontWeight: '700',
+  bulletIcon: {
     marginRight: spacing.sm,
     width: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bulletText: {
     fontSize: fontSize.md,

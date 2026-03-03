@@ -8,6 +8,14 @@ import {
   Platform,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {
+  Smartphone,
+  FolderOpen,
+  Bell,
+  Download,
+  Heart,
+  Sparkles,
+} from 'lucide-react-native';
 import useSettingsStore from '../store/useSettingsStore';
 import usePermissions from '../hooks/usePermissions';
 import useTheme from '../hooks/useTheme';
@@ -15,10 +23,11 @@ import {spacing, fontSize, borderRadius} from '../theme/spacing';
 import {isAndroid} from '../utils/platform';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const ILLUSTRATION_SIZE = 72;
 
 interface StepConfig {
   id: string;
-  illustration: string;
+  illustration: React.ReactNode;
   title: string;
   description: string;
   buttonText: string;
@@ -28,7 +37,7 @@ interface StepConfig {
 const STEPS: StepConfig[] = [
   {
     id: 'welcome',
-    illustration: '\u{1F4F1}',
+    illustration: <Smartphone size={ILLUSTRATION_SIZE} color="#075E54" />,
     title: 'Welcome to StatusVault',
     description:
       'Save and share WhatsApp statuses before they disappear. Your privacy is our priority - everything stays on your device.',
@@ -37,7 +46,7 @@ const STEPS: StepConfig[] = [
   },
   {
     id: 'storage',
-    illustration: '\u{1F4C2}',
+    illustration: <FolderOpen size={ILLUSTRATION_SIZE} color="#075E54" />,
     title: 'Storage Access',
     description:
       'We need access to your storage to find and save WhatsApp statuses. Your files are only accessed locally and never uploaded anywhere.',
@@ -48,7 +57,7 @@ const STEPS: StepConfig[] = [
     ? [
         {
           id: 'notification',
-          illustration: '\u{1F514}',
+          illustration: <Bell size={ILLUSTRATION_SIZE} color="#075E54" />,
           title: 'Deleted Message Recovery',
           description:
             'Optionally enable notification access to capture WhatsApp messages before they are deleted. All data stays on your device.',
@@ -59,7 +68,7 @@ const STEPS: StepConfig[] = [
     : []),
   {
     id: 'tip_save',
-    illustration: '\u{1F4BE}',
+    illustration: <Download size={ILLUSTRATION_SIZE} color="#075E54" />,
     title: 'Save & Batch Save',
     description:
       'Tap any status to view it, then hit Save. Long-press to select multiple and save them all at once.',
@@ -68,7 +77,9 @@ const STEPS: StepConfig[] = [
   },
   {
     id: 'tip_favorite',
-    illustration: '\u2665',
+    illustration: (
+      <Heart size={ILLUSTRATION_SIZE} color="#E91E63" fill="#E91E63" />
+    ),
     title: 'Favorite Statuses',
     description:
       'Tap the heart icon on any status to mark it as a favorite. Your favorites are saved and stay available even after statuses expire.',
@@ -77,7 +88,7 @@ const STEPS: StepConfig[] = [
   },
   {
     id: 'ready',
-    illustration: '\u{1F389}',
+    illustration: <Sparkles size={ILLUSTRATION_SIZE} color="#25D366" />,
     title: "You're All Set!",
     description:
       'Start browsing statuses from the Images and Videos tabs. Saved items appear in the Saved tab.',
@@ -171,7 +182,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onComplete}) => {
             styles.illustrationContainer,
             {backgroundColor: theme.surface},
           ]}>
-          <Text style={styles.illustration}>{step.illustration}</Text>
+          {step.illustration}
         </View>
 
         {/* Text content */}
@@ -229,9 +240,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     marginBottom: spacing.xl + spacing.md,
-  },
-  illustration: {
-    fontSize: 72,
   },
   textContainer: {
     alignItems: 'center',

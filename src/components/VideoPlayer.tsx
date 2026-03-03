@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Video, {OnLoadData, OnProgressData} from 'react-native-video';
+import {Play, Pause} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
 import {spacing, fontSize} from '../theme/spacing';
 
@@ -84,9 +85,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <TouchableOpacity
             style={styles.playPauseButton}
             onPress={onTogglePlay}>
-            <Text style={styles.playPauseText}>
-              {paused ? '\u25B6' : '\u2759\u2759'}
-            </Text>
+            {paused ? (
+              <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+            ) : (
+              <Pause size={28} color="#FFFFFF" fill="#FFFFFF" />
+            )}
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -132,10 +135,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  playPauseText: {
-    color: '#FFFFFF',
-    fontSize: 24,
   },
   progressContainer: {
     position: 'absolute',

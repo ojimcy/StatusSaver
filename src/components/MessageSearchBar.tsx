@@ -3,9 +3,9 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Text,
   StyleSheet,
 } from 'react-native';
+import {Search, X} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
 import {spacing, fontSize, borderRadius} from '../theme/spacing';
 
@@ -29,9 +29,9 @@ const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
           styles.inputContainer,
           {backgroundColor: theme.card, borderColor: theme.border},
         ]}>
-        <Text style={[styles.searchIcon, {color: theme.textSecondary}]}>
-          {'\u2315'}
-        </Text>
+        <View style={styles.searchIcon}>
+          <Search size={18} color={theme.textSecondary} />
+        </View>
         <TextInput
           style={[styles.input, {color: theme.text}]}
           value={value}
@@ -47,9 +47,7 @@ const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
             style={styles.clearButton}
             onPress={() => onChangeText('')}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-            <Text style={[styles.clearIcon, {color: theme.textSecondary}]}>
-              {'\u2715'}
-            </Text>
+            <X size={16} color={theme.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -71,7 +69,6 @@ const styles = StyleSheet.create({
     height: 40,
   },
   searchIcon: {
-    fontSize: fontSize.lg,
     marginRight: spacing.sm,
   },
   input: {
@@ -82,10 +79,6 @@ const styles = StyleSheet.create({
   clearButton: {
     marginLeft: spacing.sm,
     padding: spacing.xs,
-  },
-  clearIcon: {
-    fontSize: fontSize.md,
-    fontWeight: '600',
   },
 });
 

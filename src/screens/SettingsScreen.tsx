@@ -9,6 +9,7 @@ import {
   Linking,
   Switch,
 } from 'react-native';
+import {ChevronRight} from 'lucide-react-native';
 import useSettingsStore from '../store/useSettingsStore';
 import usePermissions from '../hooks/usePermissions';
 import useTheme from '../hooks/useTheme';
@@ -176,9 +177,7 @@ const SettingsScreen: React.FC = () => {
               <Text style={[styles.optionText, {color: theme.text}]}>
                 Export Messages
               </Text>
-              <Text style={[styles.chevron, {color: theme.textSecondary}]}>
-                {'\u203A'}
-              </Text>
+              <ChevronRight size={20} color={theme.textSecondary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -210,9 +209,7 @@ const SettingsScreen: React.FC = () => {
           <Text style={[styles.optionText, {color: theme.text}]}>
             Privacy Policy
           </Text>
-          <Text style={[styles.chevron, {color: theme.textSecondary}]}>
-            {'\u203A'}
-          </Text>
+          <ChevronRight size={20} color={theme.textSecondary} />
         </TouchableOpacity>
 
         <View style={[styles.optionRow, {borderBottomWidth: 0}]}>
@@ -287,10 +284,6 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-  },
-  chevron: {
-    fontSize: fontSize.xxl,
-    fontWeight: '300',
   },
   disclaimer: {
     fontSize: fontSize.sm,

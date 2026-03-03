@@ -7,7 +7,7 @@ import type {StatusFile} from '../types';
 interface StatusGridProps {
   statuses: StatusFile[];
   onItemPress: (file: StatusFile) => void;
-  onItemLongPress: (file: StatusFile) => void;
+  onItemLongPress: (file: StatusFile, position: {x: number; y: number}) => void;
   selectedIds: string[];
   selectionMode: boolean;
   refreshing: boolean;
@@ -31,7 +31,7 @@ const StatusGrid: React.FC<StatusGridProps> = ({
     <StatusCard
       file={item}
       onPress={() => onItemPress(item)}
-      onLongPress={() => onItemLongPress(item)}
+      onLongPress={(position: {x: number; y: number}) => onItemLongPress(item, position)}
       selected={selectedIds.includes(item.id)}
       selectionMode={selectionMode}
     />

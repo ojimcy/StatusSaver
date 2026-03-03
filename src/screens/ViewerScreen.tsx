@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {ArrowLeft, Download, Check, Share2, Heart} from 'lucide-react-native';
 import ImageViewer from '../components/ImageViewer';
 import VideoPlayer from '../components/VideoPlayer';
 import {spacing, fontSize} from '../theme/spacing';
@@ -77,7 +78,7 @@ const ViewerScreen = ({navigation, route}: any) => {
           style={styles.backButton}
           onPress={handleBack}
           hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-          <Text style={styles.backIcon}>{'\u2190'}</Text>
+          <ArrowLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.topTitle} numberOfLines={1}>
           {file.type === 'image' ? 'Image' : 'Video'}
@@ -92,9 +93,11 @@ const ViewerScreen = ({navigation, route}: any) => {
             style={styles.actionButton}
             onPress={handleSave}
             disabled={saved}>
-            <Text style={[styles.actionIcon, saved && styles.actionIconActive]}>
-              {saved ? '\u2713' : '\u2B07'}
-            </Text>
+            {saved ? (
+              <Check size={22} color="#25D366" />
+            ) : (
+              <Download size={22} color="#FFFFFF" />
+            )}
             <Text
               style={[styles.actionLabel, saved && styles.actionLabelActive]}>
               {saved ? 'Saved' : 'Save'}
@@ -102,16 +105,18 @@ const ViewerScreen = ({navigation, route}: any) => {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-            <Text style={styles.actionIcon}>{'\u2B06'}</Text>
+            <Share2 size={22} color="#FFFFFF" />
             <Text style={styles.actionLabel}>Share</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionButton}
             onPress={handleFavorite}>
-            <Text style={[styles.actionIcon, favorited && {color: '#E91E63'}]}>
-              {favorited ? '\u2665' : '\u2661'}
-            </Text>
+            <Heart
+              size={22}
+              color={favorited ? '#E91E63' : '#FFFFFF'}
+              fill={favorited ? '#E91E63' : 'none'}
+            />
             <Text style={[styles.actionLabel, favorited && {color: '#E91E63'}]}>
               {favorited ? 'Favorited' : 'Favorite'}
             </Text>
@@ -140,11 +145,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  backIcon: {
-    color: '#FFFFFF',
-    fontSize: fontSize.xxl,
-    fontWeight: '300',
-  },
   topTitle: {
     color: '#FFFFFF',
     fontSize: fontSize.lg,
@@ -169,14 +169,6 @@ const styles = StyleSheet.create({
   actionButton: {
     alignItems: 'center',
     minWidth: 60,
-  },
-  actionIcon: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    marginBottom: spacing.xs,
-  },
-  actionIconActive: {
-    color: '#25D366',
   },
   actionLabel: {
     color: '#FFFFFF',

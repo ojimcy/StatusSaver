@@ -1,5 +1,6 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {View, Text, FlatList, TouchableOpacity, StyleSheet} from 'react-native';
+import {AlertTriangle, ChevronRight, Smartphone, X, MessageCircle} from 'lucide-react-native';
 import useMessages from '../hooks/useMessages';
 import usePermissions from '../hooks/usePermissions';
 import MessageCard from '../components/MessageCard';
@@ -96,7 +97,7 @@ const MessagesScreen: React.FC<{navigation: any}> = ({navigation}) => {
         activeOpacity={0.7}>
         <View
           style={[styles.notificationIcon, {backgroundColor: theme.accent}]}>
-          <Text style={styles.notificationIconText}>{'\u26A0'}</Text>
+          <AlertTriangle size={20} color="#FFFFFF" />
         </View>
         <View style={styles.notificationContent}>
           <Text style={[styles.notificationTitle, {color: theme.text}]}>
@@ -107,9 +108,7 @@ const MessagesScreen: React.FC<{navigation: any}> = ({navigation}) => {
             Required to capture deleted messages. Tap to enable.
           </Text>
         </View>
-        <Text style={[styles.notificationArrow, {color: theme.textSecondary}]}>
-          {'\u203A'}
-        </Text>
+        <ChevronRight size={20} color={theme.textSecondary} />
       </TouchableOpacity>
     );
   };
@@ -122,16 +121,16 @@ const MessagesScreen: React.FC<{navigation: any}> = ({navigation}) => {
     return (
       <View style={[styles.whatsappWarningCard, {backgroundColor: '#FFF8E1'}]}>
         <View style={styles.whatsappWarningHeader}>
-          <Text style={styles.whatsappWarningIcon}>{'\u{1F4F1}'}</Text>
+          <View style={styles.whatsappWarningIcon}>
+            <Smartphone size={18} color="#F57F17" />
+          </View>
           <Text style={[styles.whatsappWarningTitle, {color: '#F57F17'}]}>
             WhatsApp Notifications Must Be On
           </Text>
           <TouchableOpacity
             onPress={() => setWhatsappWarningDismissed(true)}
             hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-            <Text style={[styles.dismissText, {color: theme.textSecondary}]}>
-              {'\u2715'}
-            </Text>
+            <X size={16} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
         <Text style={[styles.whatsappWarningBody, {color: '#5D4037'}]}>
@@ -140,8 +139,8 @@ const MessagesScreen: React.FC<{navigation: any}> = ({navigation}) => {
           those messages won't be captured.
         </Text>
         <Text style={[styles.whatsappWarningHint, {color: '#795548'}]}>
-          Go to Settings {'\u203A'} Apps {'\u203A'} WhatsApp {'\u203A'}{' '}
-          Notifications and make sure they are enabled.
+          Go to Settings {'>'} Apps {'>'} WhatsApp {'>'} Notifications and make
+          sure they are enabled.
         </Text>
       </View>
     );
@@ -180,7 +179,7 @@ const MessagesScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
     return (
       <EmptyState
-        icon={'\u{1F4AC}'}
+        icon={<MessageCircle size={64} color={theme.textSecondary} />}
         title="No Messages Yet"
         subtitle={
           notificationEnabled
@@ -231,10 +230,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing.md,
   },
-  notificationIconText: {
-    fontSize: fontSize.xl,
-    color: '#FFFFFF',
-  },
   notificationContent: {
     flex: 1,
   },
@@ -245,11 +240,6 @@ const styles = StyleSheet.create({
   },
   notificationSubtitle: {
     fontSize: fontSize.sm,
-  },
-  notificationArrow: {
-    fontSize: fontSize.xxl,
-    fontWeight: '300',
-    marginLeft: spacing.sm,
   },
   whatsappWarningCard: {
     marginHorizontal: spacing.md,
@@ -265,17 +255,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   whatsappWarningIcon: {
-    fontSize: fontSize.lg,
     marginRight: spacing.sm,
   },
   whatsappWarningTitle: {
     flex: 1,
     fontSize: fontSize.md,
     fontWeight: '600',
-  },
-  dismissText: {
-    fontSize: fontSize.lg,
-    padding: spacing.xs,
   },
   whatsappWarningBody: {
     fontSize: fontSize.sm,

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
+import {ChevronDown} from 'lucide-react-native';
 import useSettingsStore from '../store/useSettingsStore';
 import useTheme from '../hooks/useTheme';
 import {fontSize, spacing, borderRadius} from '../theme/spacing';
@@ -46,9 +47,9 @@ export default function VariantSelector() {
         <Text style={[styles.label, {color: theme.headerText}]}>
           {VARIANT_LABELS[selectedVariant]}
         </Text>
-        <Text style={[styles.arrow, {color: theme.headerText}]}>
-          {'\u25BE'}
-        </Text>
+        <View style={styles.arrow}>
+          <ChevronDown size={14} color={theme.headerText} />
+        </View>
       </TouchableOpacity>
 
       <Modal
@@ -112,7 +113,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   arrow: {
-    fontSize: fontSize.sm,
     marginLeft: spacing.xs,
   },
   backdrop: {

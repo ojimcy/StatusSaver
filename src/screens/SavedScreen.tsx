@@ -2,6 +2,7 @@ import React, {useState, useCallback} from 'react';
 import {View, StyleSheet} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import {Download} from 'lucide-react-native';
 import StatusGrid from '../components/StatusGrid';
 import EmptyState from '../components/EmptyState';
 import AdBanner from '../components/AdBanner';
@@ -83,7 +84,7 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
     return (
       <View style={[styles.container, {backgroundColor: theme.background}]}>
         <EmptyState
-          icon={'\u2B07'}
+          icon={<Download size={64} color={theme.textSecondary} />}
           title="No Saved Statuses Yet"
           subtitle="Statuses you save will appear here. Tap a status and press the save button to get started."
         />

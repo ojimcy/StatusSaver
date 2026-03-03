@@ -4,7 +4,7 @@ import useTheme from '../hooks/useTheme';
 import {spacing, fontSize} from '../theme/spacing';
 
 interface EmptyStateProps {
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   subtitle: string;
   actionLabel?: string;
@@ -16,7 +16,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({icon, title, subtitle, actionLab
 
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
+      <View style={styles.iconContainer}>{icon}</View>
       <Text style={[styles.title, {color: theme.text}]}>{title}</Text>
       <Text style={[styles.subtitle, {color: theme.textSecondary}]}>
         {subtitle}
@@ -41,9 +41,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl * 2,
   },
-  icon: {
-    fontSize: 64,
+  iconContainer: {
     marginBottom: spacing.lg,
+    alignItems: 'center',
   },
   title: {
     fontSize: fontSize.xl,

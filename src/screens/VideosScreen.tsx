@@ -1,14 +1,17 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, Text, StyleSheet, Alert, TouchableOpacity} from 'react-native';
+import {Lock, Video} from 'lucide-react-native';
 import useStatuses from '../hooks/useStatuses';
 import useStatusStore from '../store/useStatusStore';
+import useSettingsStore from '../store/useSettingsStore';
 import useSAFPermission from '../hooks/useSAFPermission';
 import StatusGrid from '../components/StatusGrid';
 import SelectionBar from '../components/SelectionBar';
+import StatusContextMenu from '../components/StatusContextMenu';
 import AdBanner from '../components/AdBanner';
 import EmptyState from '../components/EmptyState';
 import useTheme from '../hooks/useTheme';
-import {saveBatch, shareFile} from '../services/FileService';
+import {saveBatch, saveToGallery, shareFile} from '../services/FileService';
 import AdManager from '../services/AdService';
 import {spacing, fontSize} from '../theme/spacing';
 import type {StatusFile} from '../types';
@@ -17,8 +20,12 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const {theme} = useTheme();
   const {videos, loading, refresh} = useStatuses();
   const {selectedIds, toggleSelection, clearSelection} = useStatusStore();
+  const toggleFavorite = useSettingsStore(s => s.toggleFavorite);
+  const favoriteIds = useSettingsStore(s => s.favoriteIds);
   const selectionMode = selectedIds.length > 0;
   const {needsPermission, missingVariants, grantAccess} = useSAFPermission();
+  const [menuFile, setMenuFile] = useState<StatusFile | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState({x: 0, y: 0});
 
   const handleGrantAccess = useCallback(async () => {
     const granted = await grantAccess();
@@ -39,13 +46,45 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
   );
 
   const handleItemLongPress = useCallback(
-    (file: StatusFile) => {
-      if (!selectionMode) {
+    (file: StatusFile, position: {x: number; y: number}) => {
+      if (selectionMode) {
         toggleSelection(file.id);
+      } else {
+        setMenuFile(file);
+        setMenuAnchor(position);
       }
     },
     [selectionMode, toggleSelection],
   );
+
+  const closeMenu = useCallback(() => setMenuFile(null), []);
+
+  const handleMenuSelect = useCallback(() => {
+    if (menuFile) {
+      toggleSelection(menuFile.id);
+    }
+  }, [menuFile, toggleSelection]);
+
+  const handleMenuSave = useCallback(async () => {
+    if (!menuFile) {return;}
+    const success = await saveToGallery(menuFile);
+    if (success) {
+      Alert.alert('Saved', 'Status saved to your gallery.');
+    } else {
+      Alert.alert('Error', 'Failed to save status. Please try again.');
+    }
+  }, [menuFile]);
+
+  const handleMenuShare = useCallback(async () => {
+    if (!menuFile) {return;}
+    await shareFile(menuFile);
+  }, [menuFile]);
+
+  const handleMenuFavorite = useCallback(() => {
+    if (menuFile) {
+      toggleFavorite(menuFile.id);
+    }
+  }, [menuFile, toggleFavorite]);
 
   const handleSaveSelected = useCallback(async () => {
     const filesToSave = videos.filter(v => selectedIds.includes(v.id));
@@ -105,7 +144,7 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
     if (!loading && videos.length === 0) {
       return (
         <EmptyState
-          icon={needsPermission ? '\u{1F512}' : '\u{1F3AC}'}
+          icon={needsPermission ? <Lock size={64} color={theme.textSecondary} /> : <Video size={64} color={theme.textSecondary} />}
           title={
             needsPermission
               ? 'Storage Access Required'
@@ -148,6 +187,16 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
         />
       )}
       <AdBanner />
+      <StatusContextMenu
+        visible={menuFile !== null}
+        anchor={menuAnchor}
+        onClose={closeMenu}
+        onSelect={handleMenuSelect}
+        onSave={handleMenuSave}
+        onShare={handleMenuShare}
+        onFavorite={handleMenuFavorite}
+        isFavorited={menuFile ? favoriteIds.includes(menuFile.id) : false}
+      />
     </View>
   );
 };

@@ -1,7 +1,10 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {Download, Share2, X} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
 import {spacing, fontSize, borderRadius} from '../theme/spacing';
+
+const ICON_SIZE = 16;
 
 interface SelectionBarProps {
   count: number;
@@ -25,17 +28,17 @@ const SelectionBar: React.FC<SelectionBarProps> = ({
       </Text>
       <View style={styles.actions}>
         <TouchableOpacity style={styles.actionButton} onPress={onSave}>
-          <Text style={styles.actionIcon}>{'\u2B07'}</Text>
+          <Download size={ICON_SIZE} color="#FFFFFF" />
           <Text style={styles.actionText}>Save</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={onShare}>
-          <Text style={styles.actionIcon}>{'\u2B06'}</Text>
+          <Share2 size={ICON_SIZE} color="#FFFFFF" />
           <Text style={styles.actionText}>Share</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionButton, styles.cancelButton]}
           onPress={onCancel}>
-          <Text style={styles.actionIcon}>{'\u2715'}</Text>
+          <X size={ICON_SIZE} color="#FFFFFF" />
           <Text style={styles.actionText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -74,10 +77,6 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  actionIcon: {
-    color: '#FFFFFF',
-    fontSize: fontSize.md,
   },
   actionText: {
     color: '#FFFFFF',
