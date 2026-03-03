@@ -34,6 +34,5 @@ export const AD_CONFIG: AdConfig =
   Platform.OS === 'android' ? ANDROID_AD_IDS : IOS_AD_IDS;
 
 // App configuration
-export const AUTO_DELETE_DAYS = 90;
 export const INTERSTITIAL_FREQUENCY = 2;
 export const INTERSTITIAL_COOLDOWN_MS = 60000;
