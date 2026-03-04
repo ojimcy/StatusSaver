@@ -1,6 +1,6 @@
 {
   "name": "StatusVault",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -46,7 +46,6 @@
     "@react-native/metro-config": "0.83.2",
     "@react-native/typescript-config": "0.83.2",
     "@types/react": "^19.1.1",
-    "@types/react-native-sqlite-storage": "^6.0.5",
     "babel-jest": "^29.6.3",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",

@@ -40,33 +40,23 @@ export async function getStatuses(): Promise<StatusFile[]> {
     let files: any[];
     // Try SAF first (Android 11+), fall back to direct path
     try {
-      console.log('[StatusService] Trying SAF getPersistedFiles...');
       files = await SAFModule.getPersistedFiles();
-      console.log('[StatusService] SAF returned', files?.length ?? 0, 'files');
-    } catch (safError: any) {
-      console.log('[StatusService] SAF failed:', safError?.message || safError);
+    } catch {
       try {
-        console.log('[StatusService] Trying direct path getStatusFiles...');
         files = await StatusAccessModule.getStatusFiles();
-        console.log('[StatusService] Direct path returned', files?.length ?? 0, 'files');
-      } catch (directError: any) {
-        console.log('[StatusService] Direct path also failed:', directError?.message || directError);
+      } catch {
         return [];
       }
     }
 
     if (!Array.isArray(files)) {
-      console.log('[StatusService] files is not an array:', typeof files);
       return [];
     }
 
-    const result = files
+    return files
       .filter((f: any) => f && f.name && !f.name.startsWith('.'))
       .map(mapNativeFile)
       .sort((a, b) => b.lastModified - a.lastModified);
-
-    console.log('[StatusService] Returning', result.length, 'statuses');
-    return result;
   } catch (error) {
     console.error('StatusService.getStatuses failed:', error);
     return [];
