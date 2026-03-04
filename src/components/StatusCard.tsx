@@ -6,7 +6,7 @@ import {
   Dimensions,
 } from 'react-native';
 import FastImage from '@d11/react-native-fast-image';
-import {Play, Check} from 'lucide-react-native';
+import {Play, Check, Heart} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
 import {spacing, borderRadius} from '../theme/spacing';
 import type {StatusFile} from '../types';
@@ -24,6 +24,7 @@ interface StatusCardProps {
   onLongPress: (position: {x: number; y: number}) => void;
   selected: boolean;
   selectionMode: boolean;
+  isFavorited: boolean;
 }
 
 const StatusCard: React.FC<StatusCardProps> = ({
@@ -32,6 +33,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
   onLongPress,
   selected,
   selectionMode,
+  isFavorited,
 }) => {
   const {theme} = useTheme();
   const containerRef = useRef<View>(null);
@@ -80,6 +82,12 @@ const StatusCard: React.FC<StatusCardProps> = ({
         )}
 
         {selected && <View style={styles.selectedTint} />}
+
+        {isFavorited && !selectionMode && (
+          <View style={styles.favoriteOverlay}>
+            <Heart size={12} color="#E91E63" fill="#E91E63" />
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -133,6 +141,17 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(37, 211, 102, 0.25)',
     borderRadius: borderRadius.md,
+  },
+  favoriteOverlay: {
+    position: 'absolute',
+    top: spacing.xs,
+    left: spacing.xs,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

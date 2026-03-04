@@ -18,17 +18,13 @@ import HomeScreen from './src/screens/HomeScreen';
 import VideosScreen from './src/screens/VideosScreen';
 import SavedScreen from './src/screens/SavedScreen';
 import ViewerScreen from './src/screens/ViewerScreen';
-import MessagesScreen from './src/screens/MessagesScreen';
-import MessageDetailScreen from './src/screens/MessageDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 
 import VariantSelector from './src/components/VariantSelector';
 import useSettingsStore from './src/store/useSettingsStore';
 import useTheme from './src/hooks/useTheme';
-import useMessageCapture from './src/hooks/useMessageCapture';
 import {fontSize, spacing} from './src/theme/spacing';
-import {supportsDeletedMessages} from './src/utils/platform';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -105,34 +101,6 @@ function SavedStack() {
         name="Viewer"
         component={ViewerScreen}
         options={{headerShown: false}}
-      />
-    </Stack.Navigator>
-  );
-}
-
-function MessagesStack() {
-  const {theme} = useTheme();
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: {backgroundColor: theme.headerBackground},
-        headerTintColor: theme.headerText,
-        headerTitleStyle: {fontWeight: '600', fontSize: fontSize.xl},
-      }}>
-      <Stack.Screen
-        name="MessagesHome"
-        component={MessagesScreen}
-        options={{
-          title: 'Messages',
-          headerRight: () => <VariantSelector />,
-        }}
-      />
-      <Stack.Screen
-        name="MessageDetail"
-        component={MessageDetailScreen}
-        options={({route}: any) => ({
-          title: route.params?.contactName || 'Messages',
-        })}
       />
     </Stack.Navigator>
   );
@@ -275,34 +243,6 @@ function MainTabs() {
         }}
       />
 
-      {supportsDeletedMessages && (
-        <Tab.Screen
-          name="Messages"
-          component={MessagesStack}
-          options={{
-            tabBarLabel: ({focused, color}) => (
-              <TabLabel label="Messages" focused={focused} color={color} />
-            ),
-            tabBarIcon: ({focused, color}) => (
-              <View
-                style={[
-                  styles.tabIconContainer,
-                  {borderColor: color},
-                  focused && {backgroundColor: color},
-                ]}>
-                <Text
-                  style={[
-                    styles.tabIconText,
-                    {color: focused ? '#FFFFFF' : color},
-                  ]}>
-                  M
-                </Text>
-              </View>
-            ),
-          }}
-        />
-      )}
-
       <Tab.Screen
         name="Settings"
         component={SettingsStack}
@@ -339,9 +279,6 @@ function App(): React.JSX.Element {
   const {theme, isDark} = useTheme();
   const [adsInitialized, setAdsInitialized] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(!onboardingComplete);
-
-  // Start capturing WhatsApp notification messages in the background
-  useMessageCapture();
 
   // Build React Navigation theme based on our custom colors
   const navigationTheme = isDark

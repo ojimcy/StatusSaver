@@ -407,7 +407,7 @@
   <header class="page-header">
     <h1>Privacy Policy</h1>
     <p class="subtitle">StatusVault &mdash; com.statusvault</p>
-    <span class="effective-date">Effective Date: February 27, 2026</span>
+    <span class="effective-date">Effective Date: March 4, 2026</span>
   </header>
 
   <main class="container">
@@ -430,7 +430,6 @@
         <li><a href="#data-collection">Information We Collect</a></li>
         <li><a href="#local-storage">How Your Data Is Stored</a></li>
         <li><a href="#permissions">App Permissions Explained</a></li>
-        <li><a href="#notification-listener">Notification Listener Service</a></li>
         <li><a href="#third-party">Third-Party Services</a></li>
         <li><a href="#data-retention">Data Retention &amp; Deletion</a></li>
         <li><a href="#data-security">Data Security</a></li>
@@ -449,7 +448,7 @@
         Welcome to StatusVault ("the App"), operated by <strong>Rain Protocol Limited</strong> ("we", "our", or "us"). This Privacy Policy explains how the StatusVault mobile application (package name: <strong>com.statusvault</strong>) handles your information when you use our app on Android and iOS devices.
       </p>
       <p>
-        StatusVault allows you to save WhatsApp status updates (images and videos), recover deleted WhatsApp messages (Android only), organize saved content with a favorites system, and supports multiple WhatsApp variants (WhatsApp, WhatsApp Business, etc.).
+        StatusVault allows you to save WhatsApp status updates (images and videos), organize saved content with a favorites system, and supports multiple WhatsApp variants (WhatsApp, WhatsApp Business, etc.).
       </p>
       <p>
         By installing and using StatusVault, you agree to the practices described in this Privacy Policy. If you do not agree with any part of this policy, please uninstall the app.
@@ -480,11 +479,6 @@
               <td>Saved Statuses</td>
               <td>WhatsApp status images and videos you choose to save</td>
               <td>Device gallery / media storage</td>
-            </tr>
-            <tr>
-              <td>Deleted Messages</td>
-              <td>Contact name, message text, group name, timestamp, and thumbnail image (base64-encoded)</td>
-              <td>Local SQLite database</td>
             </tr>
             <tr>
               <td>User Preferences</td>
@@ -520,7 +514,6 @@
       </p>
       <ul>
         <li><strong>Saved media</strong> (images and videos) are written to your device's gallery or designated media storage folders and are accessible through your default file manager and gallery apps.</li>
-        <li><strong>Deleted message records</strong> are maintained in a local SQLite database within the app's private data directory. This database is not encrypted.</li>
         <li><strong>User preferences</strong> are persisted through React Native AsyncStorage, which stores key-value pairs in the app's local data partition.</li>
         <li><strong>Temporary cache files</strong> are held in the app's cache directory and are subject to automatic cleanup by the operating system.</li>
       </ul>
@@ -566,10 +559,6 @@
               <td><span class="permission-badge">READ_MEDIA_VIDEO</span></td>
               <td>Grants access to video files on Android 13 and above, replacing the broader storage permission with a more privacy-focused, scoped alternative.</td>
             </tr>
-            <tr>
-              <td><span class="permission-badge">BIND_NOTIFICATION_LISTENER_SERVICE</span></td>
-              <td>Enables the deleted message recovery feature by allowing the app to observe incoming notifications. See <a href="#notification-listener">Section 5</a> for detailed information.</td>
-            </tr>
           </tbody>
         </table>
       </div>
@@ -597,51 +586,14 @@
       </p>
     </section>
 
-    <!-- 5. Notification Listener Service -->
-    <section class="section" id="notification-listener">
-      <h2>5. Notification Listener Service</h2>
-      <p>
-        The deleted message recovery feature on Android uses the system's Notification Listener Service. This section provides full transparency on how this sensitive permission operates.
-      </p>
-
-      <h3>5.1 How It Works</h3>
-      <p>
-        When enabled by you, the notification listener receives callbacks from the Android system each time a notification is posted or removed on your device. StatusVault <strong>exclusively processes notifications originating from WhatsApp applications</strong> (WhatsApp, WhatsApp Business, and supported variants). Notifications from all other apps are immediately discarded and never read, stored, or processed.
-      </p>
-
-      <h3>5.2 What Data Is Captured</h3>
-      <p>When a WhatsApp notification is detected and subsequently removed (indicating a deleted message), the following information is extracted and stored locally:</p>
-      <ul>
-        <li>Contact or sender name</li>
-        <li>Message text content</li>
-        <li>Group name (if applicable)</li>
-        <li>Timestamp of the notification</li>
-        <li>Notification thumbnail image (stored as base64-encoded data)</li>
-      </ul>
-
-      <h3>5.3 Important Safeguards</h3>
-      <ul>
-        <li>This feature is <strong>opt-in only</strong> and requires you to explicitly grant permission in your device's Settings.</li>
-        <li>Non-WhatsApp notifications are never read or stored.</li>
-        <li>All captured data remains in the local SQLite database on your device.</li>
-        <li>No captured message data is transmitted to any external server or third party.</li>
-        <li>You may disable the notification listener at any time through your device's Settings without affecting other app functionality.</li>
-      </ul>
-
-      <div class="notice-box info" style="margin-top: 1rem;">
-        <strong>Availability Note</strong>
-        The notification listener service and deleted message recovery feature are available on Android only. iOS does not provide equivalent system-level notification access to third-party apps.
-      </div>
-    </section>
-
-    <!-- 6. Third-Party Services -->
+    <!-- 5. Third-Party Services -->
     <section class="section" id="third-party">
-      <h2>6. Third-Party Services</h2>
+      <h2>5. Third-Party Services</h2>
       <p>
         StatusVault integrates a single third-party service for monetization purposes. We do not use analytics platforms, crash reporting tools, social media SDKs, or any other third-party data processors.
       </p>
 
-      <h3>6.1 Google Mobile Ads (AdMob)</h3>
+      <h3>5.1 Google Mobile Ads (AdMob)</h3>
       <p>
         The app displays advertisements provided by Google AdMob to support free access to the app. AdMob may collect certain device and interaction data independently to serve and measure advertisements. The ad formats used in the app include:
       </p>
@@ -662,7 +614,7 @@
         <li><a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">Google Advertising Policies</a></li>
       </ul>
 
-      <h3>6.2 Services We Do NOT Use</h3>
+      <h3>5.2 Services We Do NOT Use</h3>
       <ul>
         <li>Firebase or other cloud platforms</li>
         <li>Analytics or telemetry services</li>
@@ -673,14 +625,14 @@
       </ul>
     </section>
 
-    <!-- 7. Data Retention & Deletion -->
+    <!-- 6. Data Retention & Deletion -->
     <section class="section" id="data-retention">
-      <h2>7. Data Retention &amp; Deletion</h2>
+      <h2>6. Data Retention &amp; Deletion</h2>
       <p>
         Because all data is stored locally on your device, you have full and direct control over its lifecycle.
       </p>
 
-      <h3>7.1 Automatic Retention Policies</h3>
+      <h3>6.1 Automatic Retention Policies</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
@@ -691,16 +643,6 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Deleted Messages</td>
-              <td>90 days</td>
-              <td>Automatically purged after the retention period. Duration is configurable by you in app settings.</td>
-            </tr>
-            <tr>
-              <td>Buffered Messages</td>
-              <td>24 hours</td>
-              <td>Temporary message data is cleaned automatically after 24 hours.</td>
-            </tr>
             <tr>
               <td>Cache Files</td>
               <td>Managed by OS</td>
@@ -720,18 +662,18 @@
         </table>
       </div>
 
-      <h3>7.2 Manual Data Deletion</h3>
+      <h3>6.2 Manual Data Deletion</h3>
       <p>You can delete your data at any time through the following methods:</p>
       <ul>
-        <li><strong>In-app controls:</strong> Use the app's built-in options to clear saved messages, delete individual or all recovered messages, and remove favorites.</li>
+        <li><strong>In-app controls:</strong> Use the app's built-in options to manage saved content and remove favorites.</li>
         <li><strong>Clear app data:</strong> Navigate to your device's Settings &gt; Apps &gt; StatusVault &gt; Storage &gt; Clear Data to remove all app data including the database and preferences.</li>
-        <li><strong>Uninstall:</strong> Removing the app will delete all app-specific data (database, preferences, cache). Saved media in your gallery will remain unless you delete it separately.</li>
+        <li><strong>Uninstall:</strong> Removing the app will delete all app-specific data (preferences, cache). Saved media in your gallery will remain unless you delete it separately.</li>
       </ul>
     </section>
 
-    <!-- 8. Data Security -->
+    <!-- 7. Data Security -->
     <section class="section" id="data-security">
-      <h2>8. Data Security</h2>
+      <h2>7. Data Security</h2>
       <p>
         We take reasonable measures to safeguard the data stored by the app, though no method of electronic storage is perfectly secure.
       </p>
@@ -743,13 +685,13 @@
 
       <div class="notice-box warning" style="margin-top: 1rem;">
         <strong>Transparency Notice</strong>
-        The local SQLite database used to store recovered deleted messages is not encrypted. While the database is protected by OS-level app sandboxing, users with rooted (Android) or jailbroken (iOS) devices should be aware that other apps with elevated privileges could potentially access this data. We recommend keeping your device's operating system up to date and using your device's built-in security features (screen lock, device encryption).
+        Users with rooted (Android) or jailbroken (iOS) devices should be aware that other apps with elevated privileges could potentially access app data. We recommend keeping your device's operating system up to date and using your device's built-in security features (screen lock, device encryption).
       </div>
     </section>
 
-    <!-- 9. GDPR -->
+    <!-- 8. GDPR -->
     <section class="section" id="gdpr">
-      <h2>9. Your Rights Under GDPR</h2>
+      <h2>8. Your Rights Under GDPR</h2>
       <p>
         If you are located in the European Economic Area (EEA), the United Kingdom, or Switzerland, you are entitled to certain rights under the General Data Protection Regulation (GDPR) and equivalent legislation.
       </p>
@@ -760,21 +702,21 @@
         <li><strong>Right of Access:</strong> All your data is stored on your device and is directly accessible to you at all times through the app interface.</li>
         <li><strong>Right to Rectification:</strong> You can modify your preferences and manage saved content directly within the app.</li>
         <li><strong>Right to Erasure:</strong> You can delete any or all data at any time using the in-app controls or by clearing the app's data through your device settings.</li>
-        <li><strong>Right to Data Portability:</strong> Saved media files are stored in standard formats in your device gallery and can be transferred freely. Recovered messages can be viewed and manually copied.</li>
-        <li><strong>Right to Restrict Processing:</strong> You can disable specific features (such as the notification listener) at any time through your device settings.</li>
+        <li><strong>Right to Data Portability:</strong> Saved media files are stored in standard formats in your device gallery and can be transferred freely.</li>
+        <li><strong>Right to Restrict Processing:</strong> You can disable specific features at any time through your device settings.</li>
         <li><strong>Right to Object:</strong> You may stop using the app at any time by disabling features or uninstalling.</li>
       </ul>
       <p>
         Regarding advertisements: Google AdMob independently manages GDPR consent for personalized advertising. Users in applicable regions will be presented with a consent dialog managed by Google's User Messaging Platform (UMP) upon first launch or as required.
       </p>
       <p>
-        For any GDPR-related inquiries, please contact us at the address listed in <a href="#contact">Section 13</a>.
+        For any GDPR-related inquiries, please contact us at the address listed in <a href="#contact">Section 12</a>.
       </p>
     </section>
 
-    <!-- 10. CCPA -->
+    <!-- 9. CCPA -->
     <section class="section" id="ccpa">
-      <h2>10. Your Rights Under CCPA</h2>
+      <h2>9. Your Rights Under CCPA</h2>
       <p>
         If you are a California resident, the California Consumer Privacy Act (CCPA) grants you specific rights regarding your personal information.
       </p>
@@ -785,13 +727,13 @@
         <li><strong>Right to Non-Discrimination:</strong> You will not be penalized for exercising your privacy rights. The app provides the same service regardless of your privacy choices.</li>
       </ul>
       <p>
-        To exercise any of these rights or for questions, contact us at the address listed in <a href="#contact">Section 13</a>.
+        To exercise any of these rights or for questions, contact us at the address listed in <a href="#contact">Section 12</a>.
       </p>
     </section>
 
-    <!-- 11. Children's Privacy -->
+    <!-- 10. Children's Privacy -->
     <section class="section" id="children">
-      <h2>11. Children's Privacy (COPPA)</h2>
+      <h2>10. Children's Privacy (COPPA)</h2>
       <p>
         StatusVault is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13 years of age.
       </p>
@@ -799,16 +741,16 @@
         Since the app does not collect personal data or require account registration, there is no mechanism through which we could knowingly gather information from minors. However, the app does display advertisements served by Google AdMob, which are configured to comply with applicable child safety regulations.
       </p>
       <p>
-        If you are a parent or guardian and believe your child under 13 has been using the app in a way that raises privacy concerns, please contact us at the address provided in <a href="#contact">Section 13</a>, and we will work with you to address your concerns.
+        If you are a parent or guardian and believe your child under 13 has been using the app in a way that raises privacy concerns, please contact us at the address provided in <a href="#contact">Section 12</a>, and we will work with you to address your concerns.
       </p>
       <p>
         We encourage parents and guardians to monitor their children's device usage and to review the permissions granted to all installed applications.
       </p>
     </section>
 
-    <!-- 12. Changes to This Policy -->
+    <!-- 11. Changes to This Policy -->
     <section class="section" id="changes">
-      <h2>12. Changes to This Policy</h2>
+      <h2>11. Changes to This Policy</h2>
       <p>
         We may update this Privacy Policy from time to time to reflect changes in the app's functionality, legal requirements, or best practices. When we make changes:
       </p>
@@ -822,9 +764,9 @@
       </p>
     </section>
 
-    <!-- 13. Contact Us -->
+    <!-- 12. Contact Us -->
     <section class="section" id="contact">
-      <h2>13. Contact Us</h2>
+      <h2>12. Contact Us</h2>
       <p>
         If you have any questions, concerns, or requests regarding this Privacy Policy or the app's data practices, please reach out to us:
       </p>

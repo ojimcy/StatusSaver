@@ -6,52 +6,31 @@ import {
   requestSAFAccess,
   getWhatsAppInstallStatus,
 } from '../services/PermissionService';
-import {
-  isNotificationListenerEnabled,
-  requestNotificationAccess,
-} from '../services/NotificationService';
-import {isAndroid} from '../utils/platform';
 
 export default function usePermissions() {
   const [storageGranted, setStorageGranted] = useState(false);
-  const [notificationEnabled, setNotificationEnabled] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function refreshPermissions(trigger: string) {
+    async function refreshPermissions() {
       try {
         const storage = await checkStoragePermission();
         if (!cancelled) {
           setStorageGranted(storage);
         }
-
-        if (isAndroid) {
-          const enabled = await isNotificationListenerEnabled();
-          if (!cancelled) {
-            setNotificationEnabled(enabled);
-          }
-          console.log(
-            '[usePermissions]',
-            `refreshPermissions(${trigger}) notificationEnabled=${enabled}`,
-          );
-        }
       } catch (error) {
-        console.error(
-          '[usePermissions]',
-          `refreshPermissions(${trigger}) failed`,
-          error,
-        );
+        console.error('[usePermissions]', 'refreshPermissions failed', error);
       }
     }
 
     const appStateSub = AppState.addEventListener('change', state => {
       if (state === 'active') {
-        refreshPermissions('app-active');
+        refreshPermissions();
       }
     });
 
-    refreshPermissions('mount');
+    refreshPermissions();
 
     return () => {
       cancelled = true;
@@ -63,10 +42,6 @@ export default function usePermissions() {
     const granted = await requestStoragePermission();
     setStorageGranted(granted);
     return granted;
-  }, []);
-
-  const requestNotification = useCallback(() => {
-    requestNotificationAccess();
   }, []);
 
   const requestSAF = useCallback(async () => {
@@ -88,9 +63,7 @@ export default function usePermissions() {
 
   return {
     storageGranted,
-    notificationEnabled,
     requestStorage,
-    requestNotification,
     requestSAF,
   };
 }

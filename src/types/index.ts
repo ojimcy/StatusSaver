@@ -11,26 +11,6 @@ export interface StatusFile {
   variant: WhatsAppVariant;
 }
 
-export interface DeletedMessage {
-  id: number;
-  contactName: string;
-  messageText: string;
-  groupName: string | null;
-  isGroup: boolean;
-  timestamp: number;
-  isRead: boolean;
-  thumbnailBase64: string | null;
-  createdAt: number;
-  packageName: string;
-}
-
-export interface MessageFilter {
-  searchQuery: string;
-  contactName: string | null;
-  dateFrom: number | null;
-  dateTo: number | null;
-}
-
 export interface AdConfig {
   bannerId: string;
   interstitialId: string;

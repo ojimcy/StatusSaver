@@ -12,6 +12,7 @@ interface StatusGridProps {
   selectionMode: boolean;
   refreshing: boolean;
   onRefresh: () => void;
+  favoriteIds: string[];
   ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
   ListFooterComponent?: React.ComponentType<any> | React.ReactElement | null;
 }
@@ -24,6 +25,7 @@ const StatusGrid: React.FC<StatusGridProps> = ({
   selectionMode,
   refreshing,
   onRefresh,
+  favoriteIds,
   ListHeaderComponent,
   ListFooterComponent,
 }) => {
@@ -34,6 +36,7 @@ const StatusGrid: React.FC<StatusGridProps> = ({
       onLongPress={(position: {x: number; y: number}) => onItemLongPress(item, position)}
       selected={selectedIds.includes(item.id)}
       selectionMode={selectionMode}
+      isFavorited={favoriteIds.includes(item.id)}
     />
   );
 

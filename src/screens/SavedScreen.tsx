@@ -103,6 +103,7 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
         selectionMode={false}
         refreshing={loading}
         onRefresh={loadSaved}
+        favoriteIds={[]}
       />
       <AdBanner />
     </View>

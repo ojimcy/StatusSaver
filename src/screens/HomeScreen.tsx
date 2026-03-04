@@ -1,6 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {View, Text, StyleSheet, Alert, TouchableOpacity} from 'react-native';
-import {Lock, Image} from 'lucide-react-native';
+import {Lock, Image, Heart} from 'lucide-react-native';
 import useStatuses from '../hooks/useStatuses';
 import useStatusStore from '../store/useStatusStore';
 import useSettingsStore from '../store/useSettingsStore';
@@ -13,7 +13,7 @@ import EmptyState from '../components/EmptyState';
 import useTheme from '../hooks/useTheme';
 import {saveBatch, saveToGallery, shareFile} from '../services/FileService';
 import AdManager from '../services/AdService';
-import {spacing, fontSize} from '../theme/spacing';
+import {spacing, fontSize, borderRadius} from '../theme/spacing';
 import type {StatusFile} from '../types';
 
 const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
@@ -26,6 +26,11 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const {needsPermission, missingVariants, grantAccess} = useSAFPermission();
   const [menuFile, setMenuFile] = useState<StatusFile | null>(null);
   const [menuAnchor, setMenuAnchor] = useState({x: 0, y: 0});
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  const filteredImages = showFavoritesOnly
+    ? images.filter(img => favoriteIds.includes(img.id))
+    : images;
 
   const handleGrantAccess = useCallback(async () => {
     const granted = await grantAccess();
@@ -140,6 +145,34 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
     );
   };
 
+  const renderFilterHeader = () => (
+    <View style={styles.filterRow}>
+      <TouchableOpacity
+        style={[
+          styles.filterChip,
+          {
+            backgroundColor: showFavoritesOnly ? '#E91E63' : theme.surface,
+            borderColor: showFavoritesOnly ? '#E91E63' : theme.border,
+          },
+        ]}
+        onPress={() => setShowFavoritesOnly(prev => !prev)}
+        activeOpacity={0.7}>
+        <Heart
+          size={14}
+          color={showFavoritesOnly ? '#FFFFFF' : theme.textSecondary}
+          fill={showFavoritesOnly ? '#FFFFFF' : 'none'}
+        />
+        <Text
+          style={[
+            styles.filterChipText,
+            {color: showFavoritesOnly ? '#FFFFFF' : theme.textSecondary},
+          ]}>
+          Favorites
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   const renderContent = () => {
     if (!loading && images.length === 0) {
       return (
@@ -161,15 +194,29 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
       );
     }
 
+    if (showFavoritesOnly && filteredImages.length === 0) {
+      return (
+        <EmptyState
+          icon={<Heart size={64} color={theme.textSecondary} />}
+          title="No Favorites Yet"
+          subtitle="Long-press any status and tap the heart to add it to your favorites."
+          actionLabel="Show All"
+          onAction={() => setShowFavoritesOnly(false)}
+        />
+      );
+    }
+
     return (
       <StatusGrid
-        statuses={images}
+        statuses={filteredImages}
         onItemPress={handleItemPress}
         onItemLongPress={handleItemLongPress}
         selectedIds={selectedIds}
         selectionMode={selectionMode}
         refreshing={loading}
         onRefresh={refresh}
+        favoriteIds={favoriteIds}
+        ListHeaderComponent={renderFilterHeader()}
       />
     );
   };
@@ -212,6 +259,23 @@ const styles = StyleSheet.create({
   },
   permissionBannerText: {
     color: '#FFFFFF',
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    paddingBottom: spacing.sm,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    gap: spacing.xs,
+  },
+  filterChipText: {
     fontSize: fontSize.sm,
     fontWeight: '600',
   },

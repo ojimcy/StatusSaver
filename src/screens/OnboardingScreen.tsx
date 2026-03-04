@@ -11,7 +11,6 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   Smartphone,
   FolderOpen,
-  Bell,
   Download,
   Heart,
   Sparkles,
@@ -53,19 +52,6 @@ const STEPS: StepConfig[] = [
     buttonText: 'Grant Access',
     skipable: false,
   },
-  ...(Platform.OS === 'android'
-    ? [
-        {
-          id: 'notification',
-          illustration: <Bell size={ILLUSTRATION_SIZE} color="#075E54" />,
-          title: 'Deleted Message Recovery',
-          description:
-            'Optionally enable notification access to capture WhatsApp messages before they are deleted. All data stays on your device.',
-          buttonText: 'Enable',
-          skipable: true,
-        },
-      ]
-    : []),
   {
     id: 'tip_save',
     illustration: <Download size={ILLUSTRATION_SIZE} color="#075E54" />,
@@ -105,7 +91,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onComplete}) => {
   const {theme} = useTheme();
   const [currentStep, setCurrentStep] = useState(0);
   const {setOnboardingComplete} = useSettingsStore();
-  const {requestStorage, requestSAF, requestNotification} = usePermissions();
+  const {requestStorage, requestSAF} = usePermissions();
 
   const step = STEPS[currentStep];
   const isLastStep = currentStep === STEPS.length - 1;
@@ -134,18 +120,10 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onComplete}) => {
         handleNext();
         break;
 
-      case 'notification':
-        requestNotification();
-        // Give user time to enable, then proceed
-        setTimeout(() => {
-          handleNext();
-        }, 1000);
-        break;
-
       default:
         handleNext();
     }
-  }, [step, handleNext, requestStorage, requestSAF, requestNotification]);
+  }, [step, handleNext, requestStorage, requestSAF]);
 
   const handleSkip = useCallback(() => {
     // Tutorial steps (tip_*) and 'ready' — skip straight to finish

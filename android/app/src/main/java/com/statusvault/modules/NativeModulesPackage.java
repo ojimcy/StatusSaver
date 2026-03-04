@@ -17,7 +17,6 @@ import java.util.List;
  * Registered modules:
  * - StatusAccessModule: file access for WhatsApp statuses
  * - SAFModule: Storage Access Framework for Android 11+ scoped storage
- * - NotificationListenerModule: bridge for notification listener permission and events
  */
 public class NativeModulesPackage implements ReactPackage {
 
@@ -27,7 +26,6 @@ public class NativeModulesPackage implements ReactPackage {
         List<NativeModule> modules = new ArrayList<>();
         modules.add(new StatusAccessModule(reactContext));
         modules.add(new SAFModule(reactContext));
-        modules.add(new NotificationListenerModule(reactContext));
         return modules;
     }
 

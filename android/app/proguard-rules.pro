@@ -20,9 +20,6 @@
 -keep class com.statusvault.MainApplication { *; }
 -keep class com.statusvault.MainActivity { *; }
 
-# NotificationListenerService must not be obfuscated
--keep class com.statusvault.modules.WhatsAppNotificationService { *; }
-
 # Google Mobile Ads
 -keep class com.google.android.gms.ads.** { *; }
 -dontwarn com.google.android.gms.ads.**
