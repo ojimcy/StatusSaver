@@ -8,12 +8,16 @@ interface SettingsState {
   onboardingComplete: boolean;
   selectedVariant: WhatsAppVariant;
   favoriteIds: string[];
+  totalSaves: number;
+  reviewPrompted: boolean;
 
   setDarkMode: (mode: 'system' | 'light' | 'dark') => void;
   setOnboardingComplete: () => void;
   setSelectedVariant: (variant: WhatsAppVariant) => void;
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
+  incrementSaveCount: () => number;
+  markReviewPrompted: () => void;
 }
 
 const useSettingsStore = create<SettingsState>()(
@@ -23,6 +27,8 @@ const useSettingsStore = create<SettingsState>()(
       onboardingComplete: false,
       selectedVariant: 'whatsapp',
       favoriteIds: [],
+      totalSaves: 0,
+      reviewPrompted: false,
 
       setDarkMode: (mode: 'system' | 'light' | 'dark') => {
         set({darkMode: mode});
@@ -47,6 +53,16 @@ const useSettingsStore = create<SettingsState>()(
 
       isFavorite: (id: string) => {
         return get().favoriteIds.includes(id);
+      },
+
+      incrementSaveCount: () => {
+        const next = get().totalSaves + 1;
+        set({totalSaves: next});
+        return next;
+      },
+
+      markReviewPrompted: () => {
+        set({reviewPrompted: true});
       },
     }),
     {

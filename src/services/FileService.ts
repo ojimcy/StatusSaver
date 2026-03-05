@@ -1,5 +1,5 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
-import Share from 'react-native-share';
+import Share, {Social} from 'react-native-share';
 import RNFS from 'react-native-fs';
 import {Platform} from 'react-native';
 import {requestStoragePermission} from './PermissionService';
@@ -110,6 +110,41 @@ export async function shareFile(file: StatusFile): Promise<void> {
     if ((error as any)?.message !== 'User did not share') {
       console.error('FileService.shareFile failed:', error);
     }
+  } finally {
+    if (tempPath) {
+      await RNFS.unlink(tempPath).catch(() => {});
+    }
+  }
+}
+
+export async function repostToWhatsApp(file: StatusFile): Promise<boolean> {
+  let tempPath: string | null = null;
+  try {
+    const mimeType = file.type === 'video' ? 'video/mp4' : 'image/jpeg';
+    let shareUrl = file.uri;
+
+    if (file.uri.startsWith('content://')) {
+      const ext =
+        file.name.split('.').pop() || (file.type === 'video' ? 'mp4' : 'jpg');
+      tempPath = `${RNFS.CachesDirectoryPath}/${
+        file.name || `repost_${Date.now()}.${ext}`
+      }`;
+      await RNFS.copyFile(file.uri, tempPath);
+      shareUrl = `file://${tempPath}`;
+    }
+
+    await Share.shareSingle({
+      url: shareUrl,
+      type: mimeType,
+      social: Social.Whatsapp,
+    });
+    return true;
+  } catch (error: any) {
+    if (error?.message === 'User did not share') {
+      return false;
+    }
+    console.error('FileService.repostToWhatsApp failed:', error);
+    return false;
   } finally {
     if (tempPath) {
       await RNFS.unlink(tempPath).catch(() => {});

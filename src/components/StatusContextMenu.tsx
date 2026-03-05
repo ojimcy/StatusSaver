@@ -8,7 +8,7 @@ import {
   Pressable,
   Dimensions,
 } from 'react-native';
-import {CheckSquare, Download, Share2, Heart} from 'lucide-react-native';
+import {CheckSquare, Download, Share2, Heart, MessageCircle} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
 import {fontSize, spacing, borderRadius} from '../theme/spacing';
 
@@ -22,6 +22,7 @@ interface StatusContextMenuProps {
   onClose: () => void;
   onSelect: () => void;
   onSave: () => void;
+  onRepost: () => void;
   onShare: () => void;
   onFavorite: () => void;
   isFavorited: boolean;
@@ -33,6 +34,7 @@ const StatusContextMenu: React.FC<StatusContextMenuProps> = ({
   onClose,
   onSelect,
   onSave,
+  onRepost,
   onShare,
   onFavorite,
   isFavorited,
@@ -57,6 +59,13 @@ const StatusContextMenu: React.FC<StatusContextMenuProps> = ({
       label: 'Save',
       icon: <Download size={ICON_SIZE} color={theme.text} />,
       onPress: onSave,
+    },
+    {
+      key: 'repost',
+      label: 'Repost to WhatsApp',
+      icon: <MessageCircle size={ICON_SIZE} color="#25D366" />,
+      onPress: onRepost,
+      color: '#25D366',
     },
     {
       key: 'share',

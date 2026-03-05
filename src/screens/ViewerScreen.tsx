@@ -8,11 +8,23 @@ import {
   Alert,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {ArrowLeft, Download, Check, Share2, Heart} from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Download,
+  Check,
+  Share2,
+  Heart,
+  MessageCircle,
+} from 'lucide-react-native';
 import ImageViewer from '../components/ImageViewer';
 import VideoPlayer from '../components/VideoPlayer';
 import {spacing, fontSize} from '../theme/spacing';
-import {saveToGallery, shareFile} from '../services/FileService';
+import {
+  saveToGallery,
+  shareFile,
+  repostToWhatsApp,
+} from '../services/FileService';
+import {tryRequestReview} from '../services/ReviewService';
 import AdManager from '../services/AdService';
 import useSettingsStore from '../store/useSettingsStore';
 
@@ -23,6 +35,7 @@ const ViewerScreen = ({navigation, route}: any) => {
   const [saved, setSaved] = useState(false);
   const favorited = useSettingsStore(s => s.favoriteIds.includes(file.id));
   const toggleFavorite = useSettingsStore(s => s.toggleFavorite);
+  const incrementSaveCount = useSettingsStore(s => s.incrementSaveCount);
 
   const handleSave = useCallback(async () => {
     const success = await saveToGallery(file);
@@ -30,12 +43,25 @@ const ViewerScreen = ({navigation, route}: any) => {
       setSaved(true);
       Alert.alert('Saved', 'Status saved to your gallery.');
 
+      incrementSaveCount();
+      tryRequestReview();
+
       // Track action for interstitial frequency
       const adManager = AdManager.getInstance();
       adManager.recordAction();
       adManager.showInterstitial();
     } else {
       Alert.alert('Error', 'Failed to save status. Please try again.');
+    }
+  }, [file, incrementSaveCount]);
+
+  const handleRepost = useCallback(async () => {
+    const success = await repostToWhatsApp(file);
+    if (!success) {
+      Alert.alert(
+        'Could Not Open WhatsApp',
+        'Make sure WhatsApp is installed on your device.',
+      );
     }
   }, [file]);
 
@@ -102,6 +128,11 @@ const ViewerScreen = ({navigation, route}: any) => {
               style={[styles.actionLabel, saved && styles.actionLabelActive]}>
               {saved ? 'Saved' : 'Save'}
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionButton} onPress={handleRepost}>
+            <MessageCircle size={22} color="#25D366" />
+            <Text style={[styles.actionLabel, {color: '#25D366'}]}>Repost</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionButton} onPress={handleShare}>

@@ -11,7 +11,8 @@ import StatusContextMenu from '../components/StatusContextMenu';
 import AdBanner from '../components/AdBanner';
 import EmptyState from '../components/EmptyState';
 import useTheme from '../hooks/useTheme';
-import {saveBatch, saveToGallery, shareFile} from '../services/FileService';
+import {saveBatch, saveToGallery, shareFile, repostToWhatsApp} from '../services/FileService';
+import {tryRequestReview} from '../services/ReviewService';
 import AdManager from '../services/AdService';
 import {spacing, fontSize, borderRadius} from '../theme/spacing';
 import type {StatusFile} from '../types';
@@ -22,6 +23,7 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const {selectedIds, toggleSelection, clearSelection} = useStatusStore();
   const toggleFavorite = useSettingsStore(s => s.toggleFavorite);
   const favoriteIds = useSettingsStore(s => s.favoriteIds);
+  const incrementSaveCount = useSettingsStore(s => s.incrementSaveCount);
   const selectionMode = selectedIds.length > 0;
   const {needsPermission, missingVariants, grantAccess} = useSAFPermission();
   const [menuFile, setMenuFile] = useState<StatusFile | null>(null);
@@ -75,8 +77,24 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
     const success = await saveToGallery(menuFile);
     if (success) {
       Alert.alert('Saved', 'Status saved to your gallery.');
+      incrementSaveCount();
+      tryRequestReview();
+      const adManager = AdManager.getInstance();
+      adManager.recordAction();
+      adManager.showInterstitial();
     } else {
       Alert.alert('Error', 'Failed to save status. Please try again.');
+    }
+  }, [menuFile, incrementSaveCount]);
+
+  const handleMenuRepost = useCallback(async () => {
+    if (!menuFile) {return;}
+    const success = await repostToWhatsApp(menuFile);
+    if (!success) {
+      Alert.alert(
+        'Could Not Open WhatsApp',
+        'Make sure WhatsApp is installed on your device.',
+      );
     }
   }, [menuFile]);
 
@@ -240,6 +258,7 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
         onClose={closeMenu}
         onSelect={handleMenuSelect}
         onSave={handleMenuSave}
+        onRepost={handleMenuRepost}
         onShare={handleMenuShare}
         onFavorite={handleMenuFavorite}
         isFavorited={menuFile ? favoriteIds.includes(menuFile.id) : false}
