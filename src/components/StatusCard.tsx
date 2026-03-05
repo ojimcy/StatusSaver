@@ -1,12 +1,7 @@
 import React, {useRef} from 'react';
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import {View, TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
 import FastImage from '@d11/react-native-fast-image';
-import {Play, Check, Heart} from 'lucide-react-native';
+import {Play, Check, Heart, Download} from 'lucide-react-native';
 import useTheme from '../hooks/useTheme';
 import {spacing, borderRadius} from '../theme/spacing';
 import type {StatusFile} from '../types';
@@ -22,6 +17,7 @@ interface StatusCardProps {
   file: StatusFile;
   onPress: () => void;
   onLongPress: (position: {x: number; y: number}) => void;
+  onSave: () => void;
   selected: boolean;
   selectionMode: boolean;
   isFavorited: boolean;
@@ -31,6 +27,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
   file,
   onPress,
   onLongPress,
+  onSave,
   selected,
   selectionMode,
   isFavorited,
@@ -87,6 +84,16 @@ const StatusCard: React.FC<StatusCardProps> = ({
           <View style={styles.favoriteOverlay}>
             <Heart size={12} color="#E91E63" fill="#E91E63" />
           </View>
+        )}
+
+        {!selectionMode && (
+          <TouchableOpacity
+            style={styles.downloadButton}
+            onPress={onSave}
+            activeOpacity={0.7}
+            hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}>
+            <Download size={16} color="#FFFFFF" />
+          </TouchableOpacity>
         )}
       </View>
     </TouchableOpacity>
@@ -152,6 +159,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  downloadButton: {
+    position: 'absolute',
+    bottom: spacing.xs,
+    right: spacing.xs,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#25D366',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
 });
 

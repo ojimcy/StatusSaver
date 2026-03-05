@@ -1,12 +1,11 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {
   View,
   Image,
   StyleSheet,
   Dimensions,
   ScrollView,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
+  TouchableWithoutFeedback,
 } from 'react-native';
 
 interface ImageViewerProps {
@@ -14,21 +13,44 @@ interface ImageViewerProps {
 }
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
+const DOUBLE_TAP_DELAY = 300;
+const ZOOM_SCALE = 2.5;
 
 const ImageViewer: React.FC<ImageViewerProps> = ({uri}) => {
   const scrollViewRef = useRef<ScrollView>(null);
-  const [scale, setScale] = useState(1);
+  const lastTapRef = useRef(0);
+  const isZoomedRef = useRef(false);
 
-  const handleDoublePress = () => {
-    if (scale > 1) {
-      scrollViewRef.current?.scrollTo({x: 0, y: 0, animated: true});
-      // Reset zoom handled by ScrollView
+  const handlePress = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double tap — toggle zoom
+      if (isZoomedRef.current) {
+        scrollViewRef.current?.scrollResponderZoomTo({
+          x: 0,
+          y: 0,
+          width: SCREEN_WIDTH,
+          height: SCREEN_HEIGHT,
+          animated: true,
+        });
+        isZoomedRef.current = false;
+      } else {
+        const zoomWidth = SCREEN_WIDTH / ZOOM_SCALE;
+        const zoomHeight = SCREEN_HEIGHT / ZOOM_SCALE;
+        scrollViewRef.current?.scrollResponderZoomTo({
+          x: (SCREEN_WIDTH - zoomWidth) / 2,
+          y: (SCREEN_HEIGHT - zoomHeight) / 2,
+          width: zoomWidth,
+          height: zoomHeight,
+          animated: true,
+        });
+        isZoomedRef.current = true;
+      }
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
     }
-  };
-
-  const onScrollEndDrag = (_event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    // Scroll view handles zoom state
-  };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -41,15 +63,14 @@ const ImageViewer: React.FC<ImageViewerProps> = ({uri}) => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         bouncesZoom={true}
-        onScrollEndDrag={onScrollEndDrag}
-        onMomentumScrollEnd={() => {}}
         centerContent={true}>
-        <Image
-          source={{uri}}
-          style={styles.image}
-          resizeMode="contain"
-          onLoad={() => setScale(1)}
-        />
+        <TouchableWithoutFeedback onPress={handlePress}>
+          <Image
+            source={{uri}}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        </TouchableWithoutFeedback>
       </ScrollView>
     </View>
   );

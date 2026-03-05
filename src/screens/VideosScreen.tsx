@@ -109,6 +109,20 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
     }
   }, [menuFile, toggleFavorite]);
 
+  const handleQuickSave = useCallback(async (file: StatusFile) => {
+    const success = await saveToGallery(file);
+    if (success) {
+      Alert.alert('Saved', 'Status saved to your gallery.');
+      incrementSaveCount();
+      tryRequestReview();
+      const adManager = AdManager.getInstance();
+      adManager.recordAction();
+      adManager.showInterstitial();
+    } else {
+      Alert.alert('Error', 'Failed to save status. Please try again.');
+    }
+  }, [incrementSaveCount]);
+
   const handleSaveSelected = useCallback(async () => {
     const filesToSave = videos.filter(v => selectedIds.includes(v.id));
 
@@ -229,6 +243,7 @@ const VideosScreen: React.FC<{navigation: any}> = ({navigation}) => {
         statuses={filteredVideos}
         onItemPress={handleItemPress}
         onItemLongPress={handleItemLongPress}
+        onItemSave={handleQuickSave}
         selectedIds={selectedIds}
         selectionMode={selectionMode}
         refreshing={loading}

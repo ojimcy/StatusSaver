@@ -80,6 +80,10 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
     // No selection mode for saved screen
   }, []);
 
+  const handleItemSave = useCallback((_file: StatusFile) => {
+    // Already saved — no-op
+  }, []);
+
   if (!loading && savedStatuses.length === 0) {
     return (
       <View style={[styles.container, {backgroundColor: theme.background}]}>
@@ -99,6 +103,7 @@ const SavedScreen: React.FC<{navigation: any}> = ({navigation}) => {
         statuses={savedStatuses}
         onItemPress={handleItemPress}
         onItemLongPress={handleItemLongPress}
+        onItemSave={handleItemSave}
         selectedIds={[]}
         selectionMode={false}
         refreshing={loading}

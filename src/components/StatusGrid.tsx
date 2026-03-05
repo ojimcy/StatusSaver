@@ -8,6 +8,7 @@ interface StatusGridProps {
   statuses: StatusFile[];
   onItemPress: (file: StatusFile) => void;
   onItemLongPress: (file: StatusFile, position: {x: number; y: number}) => void;
+  onItemSave: (file: StatusFile) => void;
   selectedIds: string[];
   selectionMode: boolean;
   refreshing: boolean;
@@ -21,6 +22,7 @@ const StatusGrid: React.FC<StatusGridProps> = ({
   statuses,
   onItemPress,
   onItemLongPress,
+  onItemSave,
   selectedIds,
   selectionMode,
   refreshing,
@@ -34,6 +36,7 @@ const StatusGrid: React.FC<StatusGridProps> = ({
       file={item}
       onPress={() => onItemPress(item)}
       onLongPress={(position: {x: number; y: number}) => onItemLongPress(item, position)}
+      onSave={() => onItemSave(item)}
       selected={selectedIds.includes(item.id)}
       selectionMode={selectionMode}
       isFavorited={favoriteIds.includes(item.id)}
