@@ -13,6 +13,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import AdManager from './src/services/AdService';
+import {checkForUpdate} from './src/services/UpdateService';
 
 import HomeScreen from './src/screens/HomeScreen';
 import VideosScreen from './src/screens/VideosScreen';
@@ -35,6 +36,7 @@ function ImagesStack() {
   const {theme} = useTheme();
   return (
     <Stack.Navigator
+      id="ImagesStack"
       screenOptions={{
         headerStyle: {backgroundColor: theme.headerBackground},
         headerTintColor: theme.headerText,
@@ -61,6 +63,7 @@ function VideosStack() {
   const {theme} = useTheme();
   return (
     <Stack.Navigator
+      id="VideosStack"
       screenOptions={{
         headerStyle: {backgroundColor: theme.headerBackground},
         headerTintColor: theme.headerText,
@@ -87,6 +90,7 @@ function SavedStack() {
   const {theme} = useTheme();
   return (
     <Stack.Navigator
+      id="SavedStack"
       screenOptions={{
         headerStyle: {backgroundColor: theme.headerBackground},
         headerTintColor: theme.headerText,
@@ -110,6 +114,7 @@ function SettingsStack() {
   const {theme} = useTheme();
   return (
     <Stack.Navigator
+      id="SettingsStack"
       screenOptions={{
         headerStyle: {backgroundColor: theme.headerBackground},
         headerTintColor: theme.headerText,
@@ -148,6 +153,7 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
+      id="MainTabs"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -311,6 +317,9 @@ function App(): React.JSX.Element {
       .initialize()
       .then(() => setAdsInitialized(true))
       .catch((err: Error) => console.warn('AdMob init failed:', err));
+
+    // Check for app updates via Google Play In-App Updates
+    checkForUpdate();
   }, []);
 
   // App Open ad: track foreground/background transitions

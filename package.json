@@ -1,6 +1,6 @@
 {
   "name": "StatusVault",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -19,6 +19,7 @@
     "lucide-react-native": "^0.576.0",
     "react": "19.2.0",
     "react-native": "0.83.2",
+    "react-native-device-info": "^15.0.2",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.24.0",
     "react-native-google-mobile-ads": "^16.0.3",
@@ -33,6 +34,7 @@
     "react-native-svg": "^15.11.0",
     "react-native-video": "^6.19.0",
     "react-native-worklets": "^0.7.4",
+    "sp-react-native-in-app-updates": "^1.5.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
