@@ -4,9 +4,10 @@ import ImageViewingLib from 'react-native-image-viewing';
 
 interface ImageViewerProps {
   uri: string;
+  onRequestClose?: () => void;
 }
 
-const ImageViewer: React.FC<ImageViewerProps> = ({uri}) => {
+const ImageViewer: React.FC<ImageViewerProps> = ({uri, onRequestClose}) => {
   const images = useMemo(() => [{uri}], [uri]);
 
   return (
@@ -15,10 +16,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({uri}) => {
         images={images}
         imageIndex={0}
         visible={true}
-        onRequestClose={() => {}}
+        onRequestClose={onRequestClose ?? (() => {})}
         presentationStyle="overFullScreen"
         backgroundColor="#000000"
-        swipeToCloseEnabled={false}
+        swipeToCloseEnabled={true}
         doubleTapToZoomEnabled={true}
       />
     </View>

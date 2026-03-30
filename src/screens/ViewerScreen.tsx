@@ -89,7 +89,7 @@ const ViewerScreen = ({navigation, route}: any) => {
       <StatusBar hidden />
 
       {file.type === 'image' ? (
-        <ImageViewer uri={file.uri} />
+        <ImageViewer uri={file.uri} onRequestClose={handleBack} />
       ) : (
         <VideoPlayer
           uri={file.uri}
